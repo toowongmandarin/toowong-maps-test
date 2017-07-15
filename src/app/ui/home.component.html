@@ -1,0 +1,15 @@
+<div>
+  <div class="flex-container"
+     fxLayout="row"
+     fxLayout.xs="row"
+     fxLayoutAlign="space-around none"
+     fxLayoutAlign.xs="start">
+     <div *ngIf="user">
+       Welcome {{user.email}} - <a href="#" (click)="logout()">Logout</a>
+     </div>
+     <div *ngIf="!user">
+       Please login
+     </div>
+   </div>
+  <map-component #mapComponent></map-component>
+</div>

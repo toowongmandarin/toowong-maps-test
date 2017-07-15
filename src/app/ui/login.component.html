@@ -1,0 +1,30 @@
+<div md-dialog-content>
+  <form name='loginFrm' (submit)='login($event)'>
+    <div class="flex-container"
+       fxLayout="column"
+       fxLayout.xs="column"
+       fxLayoutAlign="center center"
+       fxLayoutAlign.xs="start">
+       <div>
+        <div>
+          <md-input-container>
+            <label>Email</label>
+            <input mdInput type='email' name="email" [(ngModel)]="email" >
+          </md-input-container>
+        </div>
+        <div>
+          <md-input-container>
+            <label>Password</label>
+            <input mdInput type='password' name="password" [(ngModel)]="password" >
+          </md-input-container>
+        </div>
+        <md-dialog-actions>
+          <button md-button md-raised-button type='submit' [disabled]="isPending || isMaint" >Login</button>
+        </md-dialog-actions>
+        <div>
+          {{data.consumer.errorMsg}}
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

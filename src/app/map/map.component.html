@@ -1,0 +1,4 @@
+<md-slide-toggle (change)="toggleShowInfo($event)">Show Cluster Info</md-slide-toggle>
+<agm-map [latitude]="centerLat" [longitude]="centerLng" [zoom]="zoom" [ngStyle]="{'height': height}">
+  <marker-cluster [onUpdate]="mapService.onUpdate" [onSetShowClusterInfo]="onToggleShowInfo" [points]="points" ></marker-cluster>
+</agm-map>
