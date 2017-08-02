@@ -1,55 +1,35 @@
 import { Component,ViewChild } from '@angular/core';
-import { FireAuthService } from '../fire/fire.component';
+import { AuthService, MapsUser } from '../user/user.component';
 import { MapComponent } from '../map/map.component';
 import { MdDialog, MdDialogRef } from '@angular/material';
-import { LoginComponent } from './login.component';
+import { MapsListComponent } from '../map/mapslist.component';
+import { BaseComponent } from '../base/base.component';
 
 @Component({
   selector: 'home-component',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent {
-  user: any;
+export class HomeComponent extends BaseComponent {
   errorMsg: string;
-  @ViewChild('mapComponent')
-  private mapComp: MapComponent;
-  loginDiag: MdDialogRef<any>;
+  @ViewChild('myMapsList')
+  private mapListComp: MapsListComponent;
 
-  constructor(protected fireAuth: FireAuthService, protected dialog: MdDialog) {
-    this.user = this.fireAuth.getUser();
-    this.errorMsg = this.user ? "" : "Please login.";
-    this.fireAuth.onAuthChange(user => {
-      console.log(`Auth state change:`);
-      console.log(user);
-      this.user = user;
-      if (user) {
-        if (this.loginDiag) {
-          this.loginDiag.close();
-        }
-        this.mapComp.loadMaps();
-      } else {
-        this.loginDiag = this.dialog.open(LoginComponent, {data: {consumer: this}, disableClose: true});
-      }
-    });
+  constructor(fireAuth: AuthService, dialog: MdDialog) {
+    super();
+    this.dialog = dialog;
+    this.fireAuth = fireAuth;
+    this.errorMsg = this.fireAuth.currentUser ? "" : "Please login.";
+    this.requireLogin();
   }
 
-  login(creds) {
-    this.errorMsg = "";
-    console.log(`Home component logging in: `);
-    console.log(creds);
-    this.fireAuth.login(creds.email, creds.password).then(user => {
-      this.user = user;
-    }).catch(error => {
-      // Handle Errors here.
-      console.log(error);
-      const errorMessage = error.message;
-      this.errorMsg = errorMessage;
-    });
+  postLoginSetup() {
+    console.log(`Home Component Post Login`);
+    this.mapListComp.load();
   }
 
-  logout() {
-    this.mapComp.clearMaps();
-    this.fireAuth.logout();
+  isAdmin() {
+    return this.fireAuth.currentUser && this.fireAuth.currentUser.isAdmin();
   }
+
 }

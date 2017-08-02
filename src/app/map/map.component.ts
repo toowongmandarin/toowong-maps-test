@@ -1,17 +1,22 @@
-import { Component, Input, ViewChild, EventEmitter } from '@angular/core';
+import { Component, Input, ViewChild, EventEmitter} from '@angular/core';
 import { MapService } from './map.service';
 import { Observable } from 'rxjs/Rx';
 import { environment } from '../../environments/environment';
 import { MdDialog, MdDialogRef } from '@angular/material';
-import { MarkerClusterDirective } from './marker-cluster';
+import { LoadingDialog } from './loading-diag.component';
+import * as _ from 'lodash';
+import { ActivatedRoute } from '@angular/router';
+import { WindowRef } from './windowref.service';
+import { BaseComponent } from '../base/base.component';
+import { AuthService } from '../user/user.component';
 
 @Component({
   selector: 'map-component',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.css']
 })
-export class MapComponent {
-  title = 'app';
+export class MapComponent extends BaseComponent {
+
   currentLocation: any = {
     addObj: {clat: null, clang:null},
     iconUrl: '/assets/images/ic_my_location_red_24px.svg',
@@ -32,8 +37,34 @@ export class MapComponent {
   loadingDialog: any;
   showInfo: boolean = false;
   onToggleShowInfo = new EventEmitter<boolean>();
+  onComplete = new EventEmitter<any>();
+  onAddressClick = new EventEmitter<any>();
 
-  constructor(protected mapService: MapService, public dialog: MdDialog) {
+  mapId: string;
+  title: string;
+  shortenTitleWidth:number = 1024;
+  triggerUpdate: boolean = false;
+  constructor(protected mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, private winRef: WindowRef) {
+    super();
+    this.dialog = dialog;
+    this.fireAuth = fireAuth;
+    this.requireLogin();
+  }
+
+  postLoginSetup() {
+    // check the route...
+    console.log(this.winRef.nativeWindow.innerHeight);
+    this.height = (this.winRef.nativeWindow.innerHeight-180) + 'px';
+    this.title = 'Loading...';
+    this.subs.push(this.route.params.subscribe(params => {
+      this.mapId = params['id'];
+      this.loadMaps();
+    }));
+  }
+
+  ngOnDestroy() {
+    this.clearMaps();
+    this.unsubscribeAll();
   }
 
   toggleShowInfo() {
@@ -43,10 +74,19 @@ export class MapComponent {
   }
 
   loadMaps() {
+    if (!_.isEmpty(this.points)) {
+      console.log(`Maps already loaded`);
+      return;
+    }
     const mapBase = environment.app.mapBase;
     // this.showCurrentLoc();
-    this.loadingDialog = this.dialog.open(LoadingDialog, {disableClose:true});
-    this.mapService.loadMaps(mapBase);
+    this.showLoadingDialog();
+    if (this.mapId == 'all') {
+      this.mapService.loadAllMapsWithMarkers(mapBase);
+    } else {
+      this.mapService.loadMapMarkers(mapBase, this.mapId, true);
+    }
+
     const subs = Observable.interval(this.checkInterval).subscribe(n=>{
       if (this.mapService.mapMarkers.length != this.curPointsCtr) {
         this.curPointsCtr = this.mapService.mapMarkers.length;
@@ -60,11 +100,32 @@ export class MapComponent {
           console.log(`Total no. of addresses: ${this.mapService.mapMarkers.length}`);
           this.points = this.mapService.mapMarkers;
           subs.unsubscribe();
-          this.loadingDialog.close();
+          this.hideLoadingDialog();
           this.mapService.trackUpdates = true;
+          this.onComplete.emit({});
+          if (this.triggerUpdate)
+            this.mapService.triggerUpdate();
+          if (this.mapService.maps.length > 1) {
+            if (this.mapId == 'all') {
+              this.title = 'All Maps';
+            } else {
+              // TODO: decide what the title
+            }
+          } else {
+            this.title = `${this.mapService.maps[0].terId} - ${this.mapService.maps[0].name}`;
+            if (this.winRef.nativeWindow.innerWidth <= this.shortenTitleWidth) {
+              this.title = `Map ${this.mapService.maps[0].terId}`;
+            }
+          }
+          this.subs.push(this.onAddressClick.subscribe(this.addressClicked));
         }
       }
     });
+  }
+
+  addressClicked(data: any){
+    console.log(`Addresss clicked!`);
+    console.log(data);
   }
 
   showCurrentLoc() {
@@ -84,28 +145,16 @@ export class MapComponent {
 
   clearMaps() {
     this.mapService.clearAllMarkers();
-    this.points = this.mapService.mapMarkers;
+    this.currentLocation.pushed = false;
   }
 
   showMarker() {
     this.clearMaps();
   }
-}
 
-@Component({
- selector: 'loading-dialog',
- template: `
-            <div md-dialog-content>
-              <div class="flex-container"
-               fxLayout="column"
-               fxLayout.xs="column"
-               fxLayoutAlign="center center"
-               fxLayoutAlign.xs="start">
-                  <img src="/assets/images/pie-loader.svg">
-               </div>
-            </div>
-            `
-})
-export class LoadingDialog {
- constructor(public dialogRef: MdDialogRef<any>) {}
+  logout() {
+    this.clearMaps();
+    super.logout();
+    this.triggerUpdate = true;
+  }
 }

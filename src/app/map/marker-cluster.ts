@@ -14,7 +14,10 @@ declare const MarkerClusterer;
 export class MarkerClusterDirective implements OnInit, OnChanges {
   @Input() public points: any[];
   @Input() protected onUpdate: EventEmitter<any>;
+  @Input() protected onFit: EventEmitter<any>;
   @Input() protected onSetShowClusterInfo: EventEmitter<boolean>;
+  @Input() protected onClear: EventEmitter<boolean>;
+  @Input() protected onAddressClick: EventEmitter<any>;
 
   public markerCluster: any;
   public markers: any[] = [];
@@ -22,6 +25,7 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
   maxTypeIdx: number = 3;
   maxColorIdx: number = 3;
   markerIcons: any[] = [];
+  bounds: any;
 
   style = {
     url: '/assets/images/place-markers/cluster.png',
@@ -49,16 +53,30 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
     });
     this.onSetShowClusterInfo.subscribe(showStat => {
       this.markerCluster.setShowInfo(showStat);
-    })
+    });
+    if (this.onFit) {
+      this.onFit.subscribe(trigger => {
+        this.fitBounds();
+      });
+    }
+    if (this.onClear) {
+      this.onClear.subscribe(trigger => {
+        this.clearMarkers();
+      });
+    }
   }
 
   public ngOnChanges(changes: SimpleChanges) {
     this.clearMarkers();
-    if (this.points && this.points.length > 0)
-      this.loadPoints();
+    this.loadPoints();
   }
 
   public loadPoints() {
+    if (!this.points || this.points.length == 0) {
+      console.log(`No points to load...`);
+      return;
+    }
+    this.bounds = new google.maps.LatLngBounds(); // empty bounds object
     this.gmapsApi.getNativeMap().then((map) => {
       if (_.isEmpty(this.markerIcons)) {
         this.scaledMarkerSize = new google.maps.Size(35, 35);
@@ -76,39 +94,58 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
         .take(1)
         .subscribe(() => {
           if (this.points.length > 0) {
+            console.log(`Painting markers...`);
+            const clickEmitter = this.onAddressClick;
             for (const point of this.points) {
               const marker = new google.maps.Marker({
                 position: new google.maps.LatLng(point.addObj.clat, point.addObj.clong),
                 icon: this.markerIcons[point.markerIdx % this.markerIcons.length]
               });
-              const contentString = `<div id="info-window">${point.infoWindowStr}</div>`;
-              marker.infoWindowStr = point.infoWindowStr;
-              const infowindow = new google.maps.InfoWindow({
-                content: contentString
-              });
 
-              marker.addListener('click', function() {
-                infowindow.open(map, marker);
-              });
+              if (point.modalMode) {
+                marker.addListener('click', function() {
+                  clickEmitter.emit({gmap: map, gmarker: marker, addrMarker: point});
+                });
+              } else {
+                const contentString = `<div id="info-window">${point.infoWindowStr}</div>`;
+                marker.infoWindowStr = point.infoWindowStr;
+                const infowindow = new google.maps.InfoWindow({
+                  content: contentString
+                });
+
+                marker.addListener('click', function() {
+                  infowindow.open(map, marker);
+                });
+              }
+
               // marker.addListener('mouseout', function() {
               //   infowindow.close(map, marker);
               // });
 
               this.markers.push(marker);
+              this.bounds.extend(marker.getPosition());
             }
           } else {
             this.markers = [];
           }
           this.markerCluster = new MarkerClusterer(map, this.markers, this.options);
+          map.setCenter(this.bounds.getCenter());
+          map.fitBounds(this.bounds);
         });
     });
   }
 
   public clearMarkers() {
     if (this.markerCluster) {
-      console.log(`Clearing markers...`);
       this.markers = [];
       this.markerCluster.clearMarkers();
     }
+  }
+
+  public fitBounds() {
+    this.gmapsApi.getNativeMap().then((map) => {
+      map.setCenter(this.bounds.getCenter());
+      map.fitBounds(this.bounds);
+    });
   }
 }

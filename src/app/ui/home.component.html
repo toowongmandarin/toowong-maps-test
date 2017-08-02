@@ -1,15 +1,15 @@
 <div>
-  <div class="flex-container"
+  <!-- <div class="flex-container"
      fxLayout="row"
      fxLayout.xs="row"
      fxLayoutAlign="space-around none"
-     fxLayoutAlign.xs="start">
-     <div *ngIf="user">
-       Welcome {{user.email}} - <a href="#" (click)="logout()">Logout</a>
-     </div>
-     <div *ngIf="!user">
-       Please login
-     </div>
-   </div>
-  <map-component #mapComponent></map-component>
+     fxLayoutAlign.xs="start"> -->
+     <md-toolbar [ngClass]="'bgc-blue-grey-900 whiteText marginTopBottom-2'">
+        <userinfo></userinfo>
+        <span class="fill-remaining-space"></span>
+        <span><a style="margin-right: 10px;" md-mini-fab [routerLink]="['/map/all']" *ngIf="isAdmin()"><md-icon >map</md-icon></a></span>
+        <span><button md-mini-fab (click)="logout()"><md-icon>exit_to_app</md-icon></button></span>
+     </md-toolbar>
+   <!-- </div> -->
+  <mapslist-component #myMapsList></mapslist-component>
 </div>

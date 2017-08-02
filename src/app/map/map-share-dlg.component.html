@@ -1,0 +1,50 @@
+<div md-dialog-content>
+  <form name='shareForm'>
+    <md-card *ngIf="data.consumer.ownerMode">
+      <md-card-header>
+        <md-card-title>
+          <h4>{{data.consumer.ownerCardTitle}}</h4>
+        </md-card-title>
+        <md-card-subtitle>{{ data.consumer.ownerCardDesc }}</md-card-subtitle>
+      </md-card-header>
+      <md-card-content>
+        <tag-input [(ngModel)]="data.consumer.userList" name="ownerDlg"
+           [editable]="true" [identifyBy]="'id'" [displayBy]="'name'"
+           [maxItems]="1" [onlyFromAutocomplete]="true" [placeholder]="data.consumer.placeHolderTxt" [secondaryPlaceholder]="data.consumer.placeHolderTxt">
+           <tag-input-dropdown [appendToBody]="false" [autocompleteItems]='data.consumer.mapUsers' [identifyBy]="'$key'" [displayBy]="'name'"></tag-input-dropdown>
+        </tag-input>
+        <!-- <md-input-container>
+           <input type="text" mdInput name="selUser" [(ngModel)]="data.consumer.selUser"  [mdAutocomplete]="autoPub">
+        </md-input-container>
+        <md-autocomplete #autoPub="mdAutocomplete" [displayWith]="displayFn">
+           <md-option *ngFor="let mapUser of data.consumer.mapUsers" [value]="mapUser">
+             {{ mapUser.userInfoObj.name }}
+           </md-option>
+        </md-autocomplete> -->
+        <!-- <button md-mini-fab (click)="data.consumer.done()"><md-icon>person_add</md-icon></button> -->
+      </md-card-content>
+    </md-card>
+    <md-card *ngIf="!data.consumer.ownerMode">
+      <md-card-header>
+        <md-card-title>
+          <h4>{{data.consumer.shareCardTitle}}</h4>
+        </md-card-title>
+        <md-card-subtitle>{{ data.consumer.shareCardDesc }}</md-card-subtitle>
+      </md-card-header>
+      <md-card-content>
+        <tag-input [(ngModel)]="data.consumer.userList" name="ownerDlg"
+           [editable]="true" [identifyBy]="'id'" [displayBy]="'name'" (onAdd)="data.consumer.onItemAdded($event)" (onRemove)="data.consumer.onItemAdded($event)"
+           [onlyFromAutocomplete]="true" [placeholder]="data.consumer.placeHolderTxt" [secondaryPlaceholder]="data.consumer.placeHolderTxt">
+           <tag-input-dropdown [appendToBody]="false" [autocompleteItems]='data.consumer.mapUsers' [identifyBy]="'$key'" [displayBy]="'name'"></tag-input-dropdown>
+        </tag-input>
+      </md-card-content>
+    </md-card>
+  </form>
+  <md-dialog-actions>
+    <button md-mini-fab (click)="data.consumer.done()"><md-icon>save</md-icon></button>
+    <button md-mini-fab (click)="data.consumer.cancel()"><md-icon>cancel</md-icon></button>
+  </md-dialog-actions>
+  <div>
+    {{data.consumer.errorMsg}}
+  </div>
+</div>
