@@ -1,4 +1,6 @@
-<td-expansion-panel *ngFor="let fsg of fsgMaps" (expanded)="toggleExpand(fsg, true)" (collapsed)="toggleExpand(fsg, false)">
+
+<td-message *ngIf="!hasMaps" label="Info" sublabel="You have no maps, please contact the maps team if you are expecting maps." color="accent" icon="info"></td-message>
+<td-expansion-panel *ngFor="let fsg of fsgMaps" [expand]="fsg.expanded" (expanded)="toggleExpand(fsg, true)" (collapsed)="toggleExpand(fsg, false)">
   <ng-template td-expansion-panel-header>
     <md-toolbar [ngClass]="'bgc-blue-grey-600 whiteText marginTopBottom-2'">
       <span><h2>{{fsg.fsgName}}</h2> </span>
@@ -18,15 +20,17 @@
       <md-chip-list selectable="false">
         <!-- <md-chip >Completion Status: </md-chip> -->
         <md-chip *ngIf="map.assgnObj && map.assgnObj.started">Started: {{ map.assgnObj.started | date:'dd MMM y'}}</md-chip>
+        <md-chip *ngIf="map.assgnObj && map.assgnObj.expiry">Expiry: {{ map.assgnObj.expiry | date:'dd MMM y'}}</md-chip>
         <md-chip *ngIf="map.hasOwner()">Owner: {{ map.getOwner().name}} </md-chip>
         <md-chip *ngIf="map.hasUsers()">Users: {{ getMapUsers(map) }}</md-chip>
-        <md-chip>Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</md-chip>
+        <md-chip *ngIf="map.mapObj.lastCompleted">Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</md-chip>
+        <md-chip *ngIf="map.assgnObj.prevOwner">Last Owner: {{ map.assgnObj.prevOwner.name }}</md-chip>
         <md-chip>Addresses: {{map.addressCount}}</md-chip>
       </md-chip-list>
     </md-card-content>
     <md-card-actions>
       <a *ngIf="canOpenMap(map)" md-mini-fab [routerLink]="['/map', map.id]"><md-icon>map</md-icon></a>
-      <mapshare [map]="map"></mapshare>
+      <mapshare *ngIf="canOpenMap(map)" [map]="map"></mapshare>
     </md-card-actions>
   </md-card>
 </td-expansion-panel>

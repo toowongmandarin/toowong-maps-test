@@ -7,7 +7,6 @@ import { BaseComponent } from '../base/base.component';
 import { AuthService, MapsUser } from '../user/user.component';
 import { WindowRef } from './windowref.service';
 import moment from 'moment-es6';
-
 import * as _ from 'lodash';
 
 @Component({
@@ -63,16 +62,18 @@ export class MapShareComponent extends BaseComponent {
         this.mapService.removeUsers(this.map, this.map.getUsersList());
       } else {
         // set to 2 weeks from now...
-        this.userList[0].expiry = moment().add(1, 'week').toDate();
-        this.mapService.updateOwner(this.map, this.userList[0]);
+        this.userList[0].expiry = moment().hour(20).minute(0).second(0).add(1, 'week').toDate(); // set to expire at 8 pm eery time..
+        this.mapService.updateOwner(this.map, this.userList[0], this.curOwner);
       }
     } else {
       if (_.isEmpty(this.userList)){
+        console.log(`Remove userslist`);
+        console.log(this.removeUsersList);
         this.mapService.removeUsers(this.map, this.removeUsersList);
       } else {
         // set to 1 day for all new items...
         _.forEach(this.newUsersList, (entry) => {
-          entry.expiry = moment().add(1, 'day').toDate();
+          entry.expiry = moment().hour(20).minute(0).second(0).add(1, 'day').toDate(); // 8 pm too
         });
         this.mapService.removeUsers(this.map, this.removeUsersList);
         this.mapService.updateUsers(this.map, this.userList);
@@ -125,6 +126,7 @@ export class MapShareComponent extends BaseComponent {
   }
 
   onItemRemove(item) {
+    console.log(item);
     _.remove(this.newUsersList, (entry) => {
       return entry.id == item.id;
     });
@@ -139,7 +141,9 @@ export class MapShareComponent extends BaseComponent {
 })
 export class MapShareDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any) {}
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any) {
+
+  }
 
   displayFn(mapUser: MapsUser):string {
     return mapUser ? mapUser.userInfoObj.name : "";

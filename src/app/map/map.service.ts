@@ -4,10 +4,14 @@ import * as _ from 'lodash';
 import { AngularFireDatabase, FirebaseListObservable } from 'angularfire2/database';
 import * as firebase from 'firebase/app';
 import { MapsUser } from '../user/user.component';
+import moment from 'moment-es6';
+
+declare const google;
 
 export class Map {
   mapObj: any;
   assgnObj: any;
+  addresses: any;
   addressCount: number;
   id: string;
 
@@ -92,6 +96,7 @@ export class AddressMarker {
   useMainMarker: boolean;
   modalMode: boolean;
   clickEmitter: any;
+  marker: any;
 }
 
 @Injectable()
@@ -104,6 +109,15 @@ export class MapService {
   maps: any[];
   subs: any[] = [];
   fsgs: Fsg[] = [];
+  addrStatuses = [
+    { val: 0, label: "Not Done" },
+    { val: 1, label: "Done" },
+    { val: 2, label: "Not Chinese" },
+    { val: 3, label: "Not at Home - 1"},
+    { val: 4, label: "Not at Home - 2" },
+    { val: 5, label: "Do Not Call" },
+    { val: 7, label: "Phone Witnessing" },
+  ];
 
   constructor(protected db: AngularFireDatabase) {
     this.maps = [];
@@ -114,6 +128,162 @@ export class MapService {
 
   public triggerUpdate() {
     this.onUpdate.emit({});
+  }
+
+  /**
+  Loads address markers, will not load all
+  */
+  loadMapMarkersObs(mapBaseUrl, mapId: string): Observable<any> {
+    const mapBin: any = {};
+    return this.db.object(`/maps/${mapId}`)
+    .flatMap(mapObj=> {
+      if (mapObj.addresses) {
+        if (this.trackUpdates) {
+          this.updatePipe.next({});
+        } else {
+          this.maps.push(mapObj);
+          mapBin.mapObj = mapObj;
+          return Observable.of(mapObj);
+        }
+      }
+      return Observable.of(null);
+    })
+    .filter(mapObj => mapObj != null )
+    .flatMap(mapObj => {
+      return this.db.object(`/assignedMaps/active/${mapId}`).flatMap(assgnObj => {
+        console.log(`Got assigned maps object...`);
+        console.log(assgnObj);
+        mapBin.assgnObj = assgnObj;
+        return Observable.of(mapObj);
+      });
+    })
+    .flatMap(mapObj => {
+      return this.db.list(`/maps/${mapId}/addresses`).flatMap(addressesObj => {
+        return Observable.from(addressesObj);
+      });
+    })
+    .filter(addIdObj => addIdObj != null )
+    .flatMap((addIdObj: any) => {
+      return this.db.object(`/addresses/${addIdObj.$value}`);
+    })
+    .filter(addObj => addObj != null)
+    .flatMap((addObj: any) => {
+      if (!mapBin.addresses) {
+        mapBin.addresses = [];
+      }
+      _.remove(mapBin.addresses, add => {
+        return add.$key == addObj.$key;
+      });
+      mapBin.addresses.push(addObj);
+      return Observable.of(addObj);
+    })
+    .flatMap(whatever => {
+      return Observable.of(mapBin);
+    })
+    .debounce(() => {
+      return Observable.interval(1000)
+    })
+    .flatMap(whatever => {
+      const map = new Map(mapId, mapBin.mapObj, mapBin.assgnObj);
+      _.forEach(mapBin.addresses, add => {
+        _.forOwn(mapBin.assgnObj.address, (val, key) => {
+          if (key == add.$key) {
+            add.status = _.toNumber(val);
+          }
+        });
+      });
+      map.addresses = mapBin.addresses;
+      return Observable.of(map);
+    });
+  }
+
+  protected createStatusMarkerIconConfig(size, statusVal) {
+    return {scaledSize: size, url: `/assets/images/place-markers/status-${statusVal}.svg`};
+  }
+
+  createMarkersWithStatus(map: Map) {
+    const scaledMarkerSize = new google.maps.Size(35, 35);
+    // create icons...
+    const markerIcons = {};
+    const defaultMarkerIcon = this.createStatusMarkerIconConfig(scaledMarkerSize, 403);
+    _.forEach(this.addrStatuses, stat => {
+      if (_.isEmpty(stat)) {
+        stat = 0;
+      }
+      markerIcons[stat.val] = this.createStatusMarkerIconConfig(scaledMarkerSize, stat.val);
+    });
+
+    _.forEach(map.addresses, addObj => {
+      let marker = null;
+      const addId = addObj.$key;
+      if (this.trackUpdates) {
+        marker = _.find(this.mapMarkers, mrk=> {return mrk.addId == addId});
+      } else {
+        marker = new AddressMarker();
+        marker.addId = addId;
+      }
+      addObj.clat = _.toNumber(addObj.clat);
+      addObj.clong = _.toNumber(addObj.clong);
+      // check if this lat and long already on the list...
+      const multiMarker = _.find(this.mapMarkers, mrk => {
+        return mrk.addObj.clat == addObj.clat && mrk.addObj.clong == addObj.clong;
+      });
+      if (multiMarker) {
+        const newAddObj = [multiMarker.addObj];
+        newAddObj.push(addObj);
+        multiMarker.addObj = newAddObj;
+        marker = multiMarker;
+      } else {
+        marker.addObj = addObj;
+      }
+      marker.mapObj = map.mapObj;
+      marker.modalMode = true;
+      // creating icon
+      // if icon is multi addresses, then all icon set to be worked on...
+      let addObjIcon = defaultMarkerIcon;
+      if (multiMarker) {
+        if (addObj.status) {
+          addObjIcon =  markerIcons[addObj.status];
+          const statuses = _.map(multiMarker.addObj, (mulitAddObj:any) => {
+            return mulitAddObj.status;
+          });
+          // revert icon to wip if an address needs a visit
+          _.forEach(statuses, status => {
+            switch (status) {
+                case 0:
+                case 3:
+                  addObjIcon =  markerIcons[addObj.status];
+            }
+          });
+        } else {
+          if (!_.isEmpty(map.assgnObj.started)) {
+            addObjIcon = markerIcons[0];
+          }
+        }
+        multiMarker.marker = new google.maps.Marker({
+          position: new google.maps.LatLng(addObj.clat, addObj.clong),
+          icon: addObjIcon,
+          label: `${multiMarker.addObj.length}`
+        });
+      } else {
+        console.log(`Using status: ${addObj.status}`);
+        if (addObj.status) {
+          addObjIcon =  markerIcons[addObj.status];
+        } else {
+          if (!_.isEmpty(map.assgnObj.started)) {
+            addObjIcon = markerIcons[0];
+          }
+        }
+        console.log(addObjIcon);
+        marker.marker = new google.maps.Marker({
+          position: new google.maps.LatLng(addObj.clat, addObj.clong),
+          icon: addObjIcon
+        });
+        if (!this.trackUpdates) {
+          this.mapMarkers.push(marker);
+        }
+      }
+    });
   }
 
   loadMapMarkers(mapBaseUrl:string, mapId: string, modalMode:boolean = false) {
@@ -151,6 +321,7 @@ export class MapService {
 
               if (modalMode) {
                 marker.modalMode = modalMode;
+
               } else {
                 marker.url = `${mapBaseUrl}/maps/detail/${mapId}`;
                 marker.infoWindowStr = `
@@ -174,6 +345,8 @@ export class MapService {
       }
     }));
   }
+
+
 
   // Asynch call
   loadAllMapsWithMarkers(mapBaseUrl) {
@@ -312,30 +485,52 @@ export class MapService {
     })
     .flatMap(whatever => {
       // Pivot data into...
-      console.log(this.fsgs);
+      // console.log(this.fsgs);
+      const fsgs = [];
       const fsgBin = {};
       _.forOwn(mapBin, (val, key) => {
-        let fsg = _.find(this.fsgs, (fsg)=>{return fsg.fsgName == val.fsgName });
+        // let fsg = _.find(this.fsgs, (fsg)=>{return fsg.fsgName == val.fsgName });
+        // if (!fsg) {
+        //   fsg = new Fsg(val.fsgName, []);
+        //   this.fsgs.push(fsg);
+        // }
+        // let map = _.find(fsg.maps, (map) => { return map.id == key });
+        // if (map) {
+        //   map.mapObj = val.mapObj;
+        //   map.assgnObj = val.assgnObj;
+        // } else {
+        //   fsg.maps.push(new Map(key, val.mapObj, val.assgnObj));
+        // }
+        let fsg = _.find(fsgs, (fsg)=>{return fsg.fsgName == val.fsgName });
         if (!fsg) {
           fsg = new Fsg(val.fsgName, []);
-          this.fsgs.push(fsg);
+          fsgs.push(fsg);
         }
-        let map = _.find(fsg.maps, (map) => { return map.id == key });
-        if (map) {
-          map.mapObj = val.mapObj;
-          map.assgnObj = val.assgnObj;
-        } else {
-          fsg.maps.push(new Map(key, val.mapObj, val.assgnObj));
-        }
+        fsg.maps.push(new Map(key, val.mapObj, val.assgnObj));
       });
 
-      return Observable.of(this.fsgs);
+      // return Observable.of(this.fsgs);
+      return Observable.of(fsgs);
     });
   }
 
-  updateOwner(map: Map, owner: any) {
+  updateLastSaved(map: Map, userInfo: any) {
+
+  }
+
+  updateOwner(map: Map, owner: any, prevOwner: any) {
     const updateObj = {};
-    updateObj[`/assignedMaps/active/${map.id}/owner`] = {id: owner.id, name: owner.name, expiry: owner.expiry};
+    const assgnInfo:any = {
+      owner: {id: owner.id, name: owner.name, expiry: owner.expiry},
+      expiry: owner.expiry
+    };
+    if (!map.assgnObj.started) {
+      assgnInfo.started = moment().toDate();
+    }
+    if (owner.id != prevOwner.id) {
+      assgnInfo.prevOwner = prevOwner;
+    }
+    updateObj[`/assignedMaps/active/${map.id}`] = assgnInfo;
     updateObj[`/users/${owner.id}/maps/${map.id}/expiry`] = owner.expiry;
     this.db.database.ref().update(updateObj);
   }
@@ -355,7 +550,9 @@ export class MapService {
   removeOwner(map: Map, prevOwner: any) {
     const updateObj = {};
     updateObj[`/assignedMaps/active/${map.id}/owner`] = null;
+    updateObj[`/assignedMaps/active/${map.id}/expiry`] = null;
     updateObj[`/users/${prevOwner.id}/maps/${map.id}`] = null;
+    updateObj[`/assignedMaps/active/${map.id}/prevOwner`] = prevOwner;
     this.db.database.ref().update(updateObj);
   }
 
@@ -363,8 +560,17 @@ export class MapService {
     const updateObj = {};
     _.forEach(users, user => {
       updateObj[`/users/${user.id}/maps/${map.id}`] = null;
+      updateObj[`/assignedMaps/active/${map.id}/users/${user.id}`] = null;
     });
     this.db.database.ref().update(updateObj);
+  }
+
+  updateAddrStat(mapId, addId, status, cb=null) {
+    const updateObj = {};
+    updateObj[`/assignedMaps/active/${mapId}/address/${addId}`] = status;
+    this.db.database.ref().update(updateObj).then(()=> {
+      if (cb) cb();
+    });
   }
 
 }

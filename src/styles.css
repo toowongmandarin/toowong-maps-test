@@ -22,3 +22,20 @@
 .toolbarIcon {
   margin-right: 10px;
 }
+
+.addrStatButton {
+  width: 100px;
+}
+
+.addrstat-radio-group {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.addrstat-radio-button {
+  margin: 5px;
+}
+
+.addrstat-selected-value {
+  margin: 15px 0;
+}

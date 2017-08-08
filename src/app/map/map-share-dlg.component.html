@@ -33,7 +33,7 @@
       </md-card-header>
       <md-card-content>
         <tag-input [(ngModel)]="data.consumer.userList" name="ownerDlg"
-           [editable]="true" [identifyBy]="'id'" [displayBy]="'name'" (onAdd)="data.consumer.onItemAdded($event)" (onRemove)="data.consumer.onItemAdded($event)"
+           [editable]="true" [identifyBy]="'id'" [displayBy]="'name'" (onAdd)="data.consumer.onItemAdded($event)" (onRemove)="data.consumer.onItemRemove($event)"
            [onlyFromAutocomplete]="true" [placeholder]="data.consumer.placeHolderTxt" [secondaryPlaceholder]="data.consumer.placeHolderTxt">
            <tag-input-dropdown [appendToBody]="false" [autocompleteItems]='data.consumer.mapUsers' [identifyBy]="'$key'" [displayBy]="'name'"></tag-input-dropdown>
         </tag-input>

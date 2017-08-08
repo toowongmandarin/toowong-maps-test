@@ -11,19 +11,19 @@ export class MapsUser {
   roles: any;
 
   isAdmin():boolean {
-    return this.roles.admin == true;
+    return this.roles && this.roles.admin == true;
   }
 
   isUpdater(): boolean {
-    return this.roles.updater == true;
+    return this.roles && this.roles.updater == true;
   }
 
   isFsgOverseer(): boolean {
-    return this.roles.fsgoverseer == true;
+    return this.roles && this.roles.fsgoverseer == true;
   }
 
   isPublisher(): boolean {
-    return this.roles.publisher == true;
+    return this.roles && this.roles.publisher == true;
   }
 
   get hasUserInfo() {

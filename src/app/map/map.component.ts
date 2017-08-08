@@ -1,14 +1,15 @@
-import { Component, Input, ViewChild, EventEmitter} from '@angular/core';
+import { Component, Input, ViewChild, EventEmitter, Inject} from '@angular/core';
 import { MapService } from './map.service';
 import { Observable } from 'rxjs/Rx';
 import { environment } from '../../environments/environment';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MdDialog, MdDialogRef, MD_DIALOG_DATA, MdIconRegistry } from '@angular/material';
 import { LoadingDialog } from './loading-diag.component';
 import * as _ from 'lodash';
 import { ActivatedRoute } from '@angular/router';
 import { WindowRef } from './windowref.service';
 import { BaseComponent } from '../base/base.component';
 import { AuthService } from '../user/user.component';
+import {DomSanitizer} from '@angular/platform-browser';
 
 @Component({
   selector: 'map-component',
@@ -28,6 +29,8 @@ export class MapComponent extends BaseComponent {
   centerLng: number = 153.0807544;
   zoom: number = 13;
   height: string = '700px';
+  heightPadding: number = 50;
+
   maxWaitTries: number = 20;
   maxWaitCtr: number = 0;
   curPointsCtr: number;
@@ -39,11 +42,22 @@ export class MapComponent extends BaseComponent {
   onToggleShowInfo = new EventEmitter<boolean>();
   onComplete = new EventEmitter<any>();
   onAddressClick = new EventEmitter<any>();
+  onFit = new EventEmitter<any>();
 
+  minimumClusterSize: number = 2;
   mapId: string;
   title: string;
   shortenTitleWidth:number = 1024;
   triggerUpdate: boolean = false;
+
+  addrDlg: MdDialogRef<any>;
+  currentAddr: any;
+  currentAddrTitle: string;
+  currentGmapUrl: string;
+  mapStarted: boolean = false;
+  currentMap: any;
+  showLocation: boolean = false;
+
   constructor(protected mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, private winRef: WindowRef) {
     super();
     this.dialog = dialog;
@@ -54,7 +68,7 @@ export class MapComponent extends BaseComponent {
   postLoginSetup() {
     // check the route...
     console.log(this.winRef.nativeWindow.innerHeight);
-    this.height = (this.winRef.nativeWindow.innerHeight-180) + 'px';
+    this.height = (this.winRef.nativeWindow.innerHeight-this.heightPadding) + 'px';
     this.title = 'Loading...';
     this.subs.push(this.route.params.subscribe(params => {
       this.mapId = params['id'];
@@ -73,6 +87,17 @@ export class MapComponent extends BaseComponent {
     this.onToggleShowInfo.emit(this.showInfo);
   }
 
+  toggleShowLocation() {
+    this.showLocation = !this.showLocation;
+    if (this.showLocation) {
+      this.showCurrentLoc();
+    }
+  }
+
+  fitMap() {
+    this.onFit.emit({});
+  }
+
   loadMaps() {
     if (!_.isEmpty(this.points)) {
       console.log(`Maps already loaded`);
@@ -84,7 +109,9 @@ export class MapComponent extends BaseComponent {
     if (this.mapId == 'all') {
       this.mapService.loadAllMapsWithMarkers(mapBase);
     } else {
-      this.mapService.loadMapMarkers(mapBase, this.mapId, true);
+      // this.mapService.loadMapMarkers(mapBase, this.mapId, true);
+      this.loadSingleMap(mapBase);
+      return;
     }
 
     const subs = Observable.interval(this.checkInterval).subscribe(n=>{
@@ -117,15 +144,84 @@ export class MapComponent extends BaseComponent {
               this.title = `Map ${this.mapService.maps[0].terId}`;
             }
           }
-          this.subs.push(this.onAddressClick.subscribe(this.addressClicked));
+          this.subs.push(this.onAddressClick.subscribe(data => {
+            console.log(data);
+            this.currentAddr = data.addrMarker;
+            this.showAddrDlg();
+          }));
         }
       }
     });
   }
 
-  addressClicked(data: any){
-    console.log(`Addresss clicked!`);
-    console.log(data);
+  loadSingleMap(mapBase) {
+    this.minimumClusterSize = 200;
+    this.subs.push(this.mapService.loadMapMarkersObs(mapBase, this.mapId).subscribe(map => {
+      console.log(`Map: `);
+      console.log(map);
+      this.mapStarted = map.assgnObj.$exists() && !_.isEmpty(map.assgnObj.started);
+      this.currentMap = map;
+
+      this.mapService.createMarkersWithStatus(map);
+      this.points = this.mapService.mapMarkers;
+      this.mapService.trackUpdates = true;
+
+      this.onComplete.emit({});
+
+      if (this.triggerUpdate) {
+        this.mapService.triggerUpdate();
+      }
+
+      this.title = `${this.mapService.maps[0].terId} - ${this.mapService.maps[0].name}`;
+      if (this.winRef.nativeWindow.innerWidth <= this.shortenTitleWidth) {
+        this.title = `Map ${this.mapService.maps[0].terId}`;
+      }
+      this.hideLoadingDialog();
+      this.triggerUpdate = true;
+      this.subs.push(this.onAddressClick.subscribe(data => {
+        console.log(data);
+
+        this.currentAddr = data.addrMarker;
+        this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
+        this.currentGmapUrl = this.getGmapUrl(this.currentAddr.addObj);
+        this.showAddrDlg();
+      }));
+    }));
+  }
+
+  startMap(mapObj: any) {
+
+  }
+
+  getAddressTitle(addrObj: any) {
+    let unit = addrObj.unit;
+    if (_.isEmpty(unit) || '9' == `${unit}`) {
+      unit = ''
+    } else {
+      unit = `Unit ${unit}`;
+    }
+    return `${unit} ${addrObj.hnum} ${addrObj.st}, ${addrObj.burb}`;
+  }
+
+  getGmapUrl(addrObj: any) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${addrObj.hnum} ${addrObj.st}, ${addrObj.burb}&travelmode=driving`;
+  }
+
+  showAddrDlg(){
+    console.log(`Opening dialog...`);
+    if (this.addrDlg) {
+      this.closeAddrDlg();
+    }
+    this.addrDlg = this.dialog.open(AddressDlgComponent, {
+      data: {consumer: this},
+      disableClose: true
+    });
+  }
+
+  closeAddrDlg() {
+    console.log(`Closing dialog...`);
+    this.addrDlg.close();
+    this.addrDlg = null;
   }
 
   showCurrentLoc() {
@@ -133,9 +229,12 @@ export class MapComponent extends BaseComponent {
       navigator.geolocation.watchPosition( pos => {
         this.currentLocation.addObj.clat = pos.coords.latitude;
         this.currentLocation.addObj.clang = pos.coords.longitude;
+        console.log(`Curernt position:`);
+        console.log(pos.coords);
         if (!this.currentLocation.pushed) {
           this.currentLocation.pushed = true;
           this.points.push(this.currentLocation);
+          // this.mapService.triggerUpdate();
         }
       }, error => {
           console.error(error);
@@ -156,5 +255,33 @@ export class MapComponent extends BaseComponent {
     this.clearMaps();
     super.logout();
     this.triggerUpdate = true;
+  }
+
+  isAdmin() {
+    return this.fireAuth.currentUser && this.fireAuth.currentUser.isAdmin();
+  }
+
+  onStatusChange(item) {
+
+  }
+
+  saveStatus() {
+    this.closeAddrDlg();
+    this.showLoadingDialog();
+    console.log(`Status: ${this.currentAddr.addObj.status}`);
+    this.mapService.updateAddrStat(this.currentAddr.mapObj.$key, this.currentAddr.addId, this.currentAddr.addObj.status);
+  }
+
+}
+
+@Component({
+  selector: 'addr-component',
+  templateUrl: './address-dlg.component.html'
+})
+export class AddressDlgComponent {
+
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+    iconRegistry.addSvgIcon('google-map',
+        sanitizer.bypassSecurityTrustResourceUrl('/assets/images/google-maps.svg'));
   }
 }

@@ -24,10 +24,10 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
   public scaledMarkerSize;
   maxTypeIdx: number = 3;
   maxColorIdx: number = 3;
-  markerIcons: any[] = [];
+  @Input() markerIcons: any[] = [];
   bounds: any;
 
-  style = {
+  @Input() style:any = {
     url: '/assets/images/place-markers/cluster.png',
     height: 40,
     width: 40,
@@ -36,12 +36,14 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
     backgroundPosition: 'center center'
   };
 
-  options = {
+  @Input() options: any = {
     imagePath: '/assets/images/place-markers/cluster',
     gridSize: 20,
     minimumClusterSize: 2,
     styles: [this.style, this.style, this.style]
   };
+
+  @Input() minimumClusterSize: number = 2;
 
   constructor(private gmapsApi: GoogleMapsAPIWrapper) {
   }
@@ -65,6 +67,7 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
       });
     }
   }
+
 
   public ngOnChanges(changes: SimpleChanges) {
     this.clearMarkers();
@@ -97,10 +100,13 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
             console.log(`Painting markers...`);
             const clickEmitter = this.onAddressClick;
             for (const point of this.points) {
-              const marker = new google.maps.Marker({
+              let marker = new google.maps.Marker({
                 position: new google.maps.LatLng(point.addObj.clat, point.addObj.clong),
                 icon: this.markerIcons[point.markerIdx % this.markerIcons.length]
               });
+              if (point.marker) {
+                marker = point.marker;
+              }
 
               if (point.modalMode) {
                 marker.addListener('click', function() {
@@ -128,6 +134,7 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
           } else {
             this.markers = [];
           }
+          this.options.minimumClusterSize = this.minimumClusterSize;
           this.markerCluster = new MarkerClusterer(map, this.markers, this.options);
           map.setCenter(this.bounds.getCenter());
           map.fitBounds(this.bounds);

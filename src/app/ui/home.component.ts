@@ -28,8 +28,8 @@ export class HomeComponent extends BaseComponent {
     this.mapListComp.load();
   }
 
-  isAdmin() {
-    return this.fireAuth.currentUser && this.fireAuth.currentUser.isAdmin();
+  canViewAllMaps() {
+    return this.fireAuth.currentUser && (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
   }
 
 }

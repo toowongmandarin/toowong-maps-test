@@ -18,6 +18,8 @@ export class MapsListComponent extends BaseComponent {
   loadingDialog: any;
   fsgMaps: Fsg[];
   loaded: boolean = false;
+  hasMaps: boolean = false;
+  oldFsgMaps: Fsg[];
 
   constructor(dialog: MdDialog, fireAuth: AuthService, protected mapService: MapService) {
     super();
@@ -27,7 +29,7 @@ export class MapsListComponent extends BaseComponent {
 
   public load() {
     this.showLoadingDialog();
-    if (this.fireAuth.currentUser.isAdmin()) {
+    if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
       // load all if an admin...
       console.log(`Loading current maps...`);
       this.getAllMapsList();
@@ -46,12 +48,32 @@ export class MapsListComponent extends BaseComponent {
     console.log(`Getting all user maps...`);
     this.subs.push(this.mapService.getUserMaps(this.fireAuth.currentUser).subscribe(fsgMaps => {
       console.log(`Got all user maps...`);
-      if (!this.loaded) {
-        _.forEach(fsgMaps, (fsgMap) => {
-          fsgMap.expanded = false;
+      // remove all maps not shared....
+      _.forEach(fsgMaps, (fsg, idx) => {
+        _.remove(fsg.maps, map => {
+          return !map.isUser(this.fireAuth.currentUser);
         });
-        this.loaded = true;
+        if (fsg.maps.length == 0) {
+          fsg.splice(idx, 1);
+        }
+      });
+      this.hasMaps = fsgMaps && fsgMaps.length > 0;
+      if (!this.hasMaps) {
+        this.oldFsgMaps = [];
+        this.fsgMaps = [];
+
       }
+      if (this.oldFsgMaps) {
+        _.forEach(this.oldFsgMaps, (fsgMap) => {
+          const currentFsg = _.find(this.fsgMaps, (curFsg) => {
+            return curFsg.fsgName == fsgMap.fsgName
+          });
+          if (currentFsg) {
+            currentFsg.expanded = fsgMap.expanded;
+          }
+        });
+      }
+      this.oldFsgMaps = this.fsgMaps;
       this.fsgMaps = fsgMaps;
       this.hideLoadingDialog();
     }));
@@ -60,17 +82,46 @@ export class MapsListComponent extends BaseComponent {
   protected getAllMapsList() {
     // maps listing depend on roles...
     console.log(`Getting all maps...`);
-    this.subs.push(this.mapService.getAllFsgMapsList().subscribe(fsgMaps => {
-      console.log(`Got all maps...`);
-      if (!this.loaded) {
-        _.forEach(fsgMaps, (fsgMap) => {
-          fsgMap.expanded = false;
-        });
-        this.loaded = true;
-      }
-      this.fsgMaps = fsgMaps;
-      this.hideLoadingDialog();
-    }));
+    this.hasMaps = true;
+    if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
+      this.subs.push(this.mapService.getAllFsgMapsList().flatMap(fsgMaps => {
+        this.fsgMaps = fsgMaps;
+        console.log("All maps:")
+        console.log(fsgMaps);
+        return this.mapService.getUserMaps(this.fireAuth.currentUser);
+      })
+      .subscribe(userMaps => {
+        console.log(`User maps:`);
+        console.log(userMaps);
+
+        if (this.fsgMaps.length > 0 && userMaps.length > 0) {
+          // check if we need to add the "Your Maps"...
+          const userFsg = _.find(this.fsgMaps, (curFsg) => {
+            return curFsg.fsgName == userMaps[0].fsgName;
+          });
+          if (!userFsg) {
+            this.fsgMaps = userMaps.concat(this.fsgMaps);
+          }
+        }
+
+        if (this.oldFsgMaps) {
+          // record the last diag open...
+          _.forEach(this.oldFsgMaps, (fsgMap) => {
+            console.log(`Old:`);
+            console.log(fsgMap);
+            const currentFsg = _.find(this.fsgMaps, (curFsg) => {
+              return curFsg.fsgName == fsgMap.fsgName
+            });
+            if (currentFsg) {
+              console.log(`Set expanded state.`);
+              currentFsg.expanded = fsgMap.expanded;
+            }
+          });
+        }
+        this.oldFsgMaps = this.fsgMaps;
+        this.hideLoadingDialog();
+      }));
+    }
   }
 
   getMapUsers(map: Map) {
