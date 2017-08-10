@@ -18,6 +18,7 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
   @Input() protected onSetShowClusterInfo: EventEmitter<boolean>;
   @Input() protected onClear: EventEmitter<boolean>;
   @Input() protected onAddressClick: EventEmitter<any>;
+  @Input() protected onAddLocMarker: EventEmitter<any>;
 
   public markerCluster: any;
   public markers: any[] = [];
@@ -26,6 +27,7 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
   maxColorIdx: number = 3;
   @Input() markerIcons: any[] = [];
   bounds: any;
+  locationMarker: any;
 
   @Input() style:any = {
     url: '/assets/images/place-markers/cluster.png',
@@ -66,6 +68,38 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
         this.clearMarkers();
       });
     }
+    if (this.onAddLocMarker) {
+      this.onAddLocMarker.subscribe(markerConfig => {
+        this.gmapsApi.getNativeMap().then((map) => {
+          this.resetBounds();
+          if (!this.locationMarker) {
+            this.locationMarker = new google.maps.Marker({
+              position: markerConfig.position,
+              map: map,
+              icon: markerConfig.iconUrl,
+              optimized:false
+            });
+            this.bounds.extend(this.locationMarker.getPosition());
+          } else {
+            if (markerConfig) {
+              var latlng = new google.maps.LatLng(markerConfig.position.lat, markerConfig.position.lng);
+              this.locationMarker.setPosition(latlng);
+              this.bounds.extend(this.locationMarker.getPosition());
+            } else {
+              this.locationMarker.setMap(null);
+              this.locationMarker = null;
+            }
+          }
+        });
+      });
+    }
+  }
+
+  public resetBounds() {
+    this.bounds = new google.maps.LatLngBounds();
+    _.forEach(this.markers, marker => {
+      this.bounds.extend(marker.getPosition());
+    });
   }
 
 

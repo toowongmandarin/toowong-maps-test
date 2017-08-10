@@ -20,7 +20,8 @@ export class MapComponent extends BaseComponent {
 
   currentLocation: any = {
     addObj: {clat: null, clang:null},
-    iconUrl: '/assets/images/ic_my_location_red_24px.svg',
+    // iconUrl: '/assets/images/ic_my_location_red_24px.svg',
+    iconUrl: '/assets/images/my_location_1.svg',
     pushed: false
   };
   public points: any = [
@@ -42,6 +43,7 @@ export class MapComponent extends BaseComponent {
   onToggleShowInfo = new EventEmitter<boolean>();
   onComplete = new EventEmitter<any>();
   onAddressClick = new EventEmitter<any>();
+  onAddLocMarker = new EventEmitter<any>();
   onFit = new EventEmitter<any>();
 
   minimumClusterSize: number = 2;
@@ -51,18 +53,26 @@ export class MapComponent extends BaseComponent {
   triggerUpdate: boolean = false;
 
   addrDlg: MdDialogRef<any>;
+  addrListDlg: MdDialogRef<any>;
+
   currentAddr: any;
   currentAddrTitle: string;
   currentGmapUrl: string;
   mapStarted: boolean = false;
   currentMap: any;
   showLocation: boolean = false;
+  selectedAddObj: any;
+  addrStatuses: any;
+  locationSearching: boolean = false;
+  locationWatch: any;
 
-  constructor(protected mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, private winRef: WindowRef) {
+  constructor(protected mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, private winRef: WindowRef, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     super();
     this.dialog = dialog;
     this.fireAuth = fireAuth;
     this.requireLogin();
+    iconRegistry.addSvgIcon('fit-map',
+        sanitizer.bypassSecurityTrustResourceUrl('/assets/images/fitmap.svg'));
   }
 
   postLoginSetup() {
@@ -91,6 +101,11 @@ export class MapComponent extends BaseComponent {
     this.showLocation = !this.showLocation;
     if (this.showLocation) {
       this.showCurrentLoc();
+    } else {
+      if (navigator.geolocation) {
+        navigator.geolocation.clearWatch(this.locationWatch);
+        this.onAddLocMarker.emit(null);
+      }
     }
   }
 
@@ -182,8 +197,15 @@ export class MapComponent extends BaseComponent {
         console.log(data);
 
         this.currentAddr = data.addrMarker;
-        this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
-        this.currentGmapUrl = this.getGmapUrl(this.currentAddr.addObj);
+        if (this.hasMultiAdds()) {
+          this.currentAddrTitle = "Multiple addresses, select one below.";
+          this.currentGmapUrl = null;
+          this.selectedAddObj = null;
+        } else {
+          this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
+          this.currentGmapUrl = this.getGmapUrl(this.currentAddr.addObj);
+          this.selectedAddObj = this.currentAddr.addObj;
+        }
         this.showAddrDlg();
       }));
     }));
@@ -195,19 +217,35 @@ export class MapComponent extends BaseComponent {
 
   getAddressTitle(addrObj: any) {
     let unit = addrObj.unit;
-    if (_.isEmpty(unit) || '9' == `${unit}`) {
+    if (_.isUndefined(unit) || !unit || '-9' == `${unit}`) {
       unit = ''
     } else {
-      unit = `Unit ${unit}`;
+      unit = `${unit}/`;
     }
-    return `${unit} ${addrObj.hnum} ${addrObj.st}, ${addrObj.burb}`;
+    return `${unit}${addrObj.hnum} ${addrObj.st}, ${addrObj.burb}`;
   }
 
   getGmapUrl(addrObj: any) {
     return `https://www.google.com/maps/dir/?api=1&destination=${addrObj.hnum} ${addrObj.st}, ${addrObj.burb}&travelmode=driving`;
   }
 
+  getStatuses() {
+    if (!this.addrStatuses) {
+      if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
+        this.addrStatuses = this.mapService.addrStatuses;
+      } else {
+        this.addrStatuses = [];
+         _.forEach(this.mapService.addrStatuses, stat => {
+          if (stat.val != 5 && stat.val != 7) {
+            this.addrStatuses.push(stat);
+          }
+        });
+      }
+    }
+  }
+
   showAddrDlg(){
+    this.getStatuses();
     console.log(`Opening dialog...`);
     if (this.addrDlg) {
       this.closeAddrDlg();
@@ -224,18 +262,32 @@ export class MapComponent extends BaseComponent {
     this.addrDlg = null;
   }
 
+  cancelAddrDlg() {
+    this.selectedAddObj = null;
+    this.closeAddrDlg();
+  }
+
   showCurrentLoc() {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition( pos => {
-        this.currentLocation.addObj.clat = pos.coords.latitude;
-        this.currentLocation.addObj.clang = pos.coords.longitude;
+      this.locationSearching = true;
+      this.locationWatch = navigator.geolocation.watchPosition( pos => {
         console.log(`Curernt position:`);
         console.log(pos.coords);
-        if (!this.currentLocation.pushed) {
-          this.currentLocation.pushed = true;
-          this.points.push(this.currentLocation);
-          // this.mapService.triggerUpdate();
+        if (this.locationSearching) {
+          this.locationSearching = false;
         }
+        this.onAddLocMarker.emit({
+          position: {lat: pos.coords.latitude, lng: pos.coords.longitude},
+          iconUrl: this.currentLocation.iconUrl
+        });
+        // this.currentLocation.addObj.clat = pos.coords.latitude;
+        // this.currentLocation.addObj.clang = pos.coords.longitude;
+        //
+        // if (!this.currentLocation.pushed) {
+        //   this.currentLocation.pushed = true;
+        //   // this.points.push(this.currentLocation);
+        //   // this.mapService.triggerUpdate();
+        // }
       }, error => {
           console.error(error);
       });
@@ -266,12 +318,63 @@ export class MapComponent extends BaseComponent {
   }
 
   saveStatus() {
+    const mapId = this.currentAddr.mapObj.$key;
+    const addId = this.selectedAddObj.$key;
+    const status = this.selectedAddObj.status;
+    const ctr = this.selectedAddObj
     this.closeAddrDlg();
     this.showLoadingDialog();
-    console.log(`Status: ${this.currentAddr.addObj.status}`);
-    this.mapService.updateAddrStat(this.currentAddr.mapObj.$key, this.currentAddr.addId, this.currentAddr.addObj.status);
+    console.log(`Status: ${status}`);
+    this.mapService.updateAddrStat(mapId, addId, status, this.fireAuth.currentUser, () => {
+      this.selectedAddObj = null;
+    });
   }
 
+  hasMultiAdds() {
+    return _.isArray(this.currentAddr.addObj) && !this.selectedAddObj;
+  }
+
+  selectAdd(addObj) {
+    this.currentAddrTitle = this.getAddressTitle(addObj);
+    this.currentGmapUrl = this.getGmapUrl(addObj);
+    this.selectedAddObj = addObj;
+  }
+
+  viewList() {
+    this.getStatuses();
+    if (this.addrListDlg) {
+      this.closeAddrListDlg();
+    }
+    this.addrListDlg = this.dialog.open(AddressListDlgComponent, {
+      data: {consumer: this},
+      disableClose: true
+    });
+  }
+
+  closeAddrListDlg() {
+    this.addrListDlg.close();
+    this.addrListDlg = null;
+  }
+
+  getAddressTitleWithStatus(addObj) {
+    let title = this.getAddressTitle(addObj);
+    if (addObj.status) {
+      title = `${this.getStatusLabel(addObj.status)} - ${title}`
+    }
+    return title;
+  }
+
+  getStatusLabel(addObj) {
+    let label = 'Not Done';
+    if (!_.isUndefined(addObj.status)) {
+      _.forEach(this.addrStatuses, stat => {
+        if (addObj.status == stat.val) {
+          label = stat.label;
+        }
+      });
+    }
+    return label;
+  }
 }
 
 @Component({
@@ -283,5 +386,15 @@ export class AddressDlgComponent {
   constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon('google-map',
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/google-maps.svg'));
+  }
+}
+
+@Component({
+  selector: 'addrlist-component',
+  templateUrl: './addresslist-dlg.component.html'
+})
+export class AddressListDlgComponent {
+
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
   }
 }

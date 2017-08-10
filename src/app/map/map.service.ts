@@ -92,7 +92,7 @@ export class AddressMarker {
   url: string;
   infoWindowStr: string;
   markerIdx: any;
-  addId: string;
+  addId: any;
   useMainMarker: boolean;
   modalMode: boolean;
   clickEmitter: any;
@@ -212,27 +212,49 @@ export class MapService {
       }
       markerIcons[stat.val] = this.createStatusMarkerIconConfig(scaledMarkerSize, stat.val);
     });
-
+    console.log(this.mapMarkers);
     _.forEach(map.addresses, addObj => {
       let marker = null;
       const addId = addObj.$key;
+      // console.log(`Add id is: ${addId}`);
+
       if (this.trackUpdates) {
-        marker = _.find(this.mapMarkers, mrk=> {return mrk.addId == addId});
+        marker = _.find(this.mapMarkers, mrk => {
+          return _.find(mrk.addId, mrkId => {
+            return mrkId == addId;
+          });
+        });
+        // console.log(`Marker is:`);
+        // console.log(marker);
       } else {
         marker = new AddressMarker();
-        marker.addId = addId;
+        marker.addId = [addId];
       }
       addObj.clat = _.toNumber(addObj.clat);
       addObj.clong = _.toNumber(addObj.clong);
       // check if this lat and long already on the list...
       const multiMarker = _.find(this.mapMarkers, mrk => {
-        return mrk.addObj.clat == addObj.clat && mrk.addObj.clong == addObj.clong;
+        if (_.isArray(mrk.addObj)) {
+          return _.find(mrk.addObj, mrkAddObj => {
+            return mrkAddObj.clat == addObj.clat && mrkAddObj.clong == addObj.clong && mrkAddObj.$key != addId;
+          });
+        } else {
+          return mrk.addObj.clat == addObj.clat && mrk.addObj.clong == addObj.clong && mrk.addObj.$key != addId;
+        }
       });
       if (multiMarker) {
-        const newAddObj = [multiMarker.addObj];
-        newAddObj.push(addObj);
-        multiMarker.addObj = newAddObj;
-        marker = multiMarker;
+        if (!this.trackUpdates) {
+          if (_.isArray(multiMarker.addObj)) {
+            multiMarker.addObj.push(addObj);
+          } else {
+            const newAddObj = [multiMarker.addObj];
+            newAddObj.push(addObj);
+            multiMarker.addObj = newAddObj;
+          }
+
+          marker = multiMarker;
+          marker.addId.push(addId);
+        }
       } else {
         marker.addObj = addObj;
       }
@@ -252,7 +274,9 @@ export class MapService {
             switch (status) {
                 case 0:
                 case 3:
-                  addObjIcon =  markerIcons[addObj.status];
+                  addObjIcon =  markerIcons[status];
+                  // console.log(`Overriding status is: ${status}`);
+                  // console.log(addObjIcon);
             }
           });
         } else {
@@ -260,13 +284,14 @@ export class MapService {
             addObjIcon = markerIcons[0];
           }
         }
+        console.log(addObjIcon);
         multiMarker.marker = new google.maps.Marker({
           position: new google.maps.LatLng(addObj.clat, addObj.clong),
           icon: addObjIcon,
           label: `${multiMarker.addObj.length}`
         });
       } else {
-        console.log(`Using status: ${addObj.status}`);
+        // console.log(`Using status: ${addObj.status}`);
         if (addObj.status) {
           addObjIcon =  markerIcons[addObj.status];
         } else {
@@ -274,7 +299,7 @@ export class MapService {
             addObjIcon = markerIcons[0];
           }
         }
-        console.log(addObjIcon);
+        // console.log(addObjIcon);
         marker.marker = new google.maps.Marker({
           position: new google.maps.LatLng(addObj.clat, addObj.clong),
           icon: addObjIcon
@@ -524,10 +549,10 @@ export class MapService {
       owner: {id: owner.id, name: owner.name, expiry: owner.expiry},
       expiry: owner.expiry
     };
-    if (!map.assgnObj.started) {
+    if (_.isEmpty(map.assgnObj.started)) {
       assgnInfo.started = moment().toDate();
     }
-    if (owner.id != prevOwner.id) {
+    if (prevOwner && owner.id != prevOwner.id) {
       assgnInfo.prevOwner = prevOwner;
     }
     updateObj[`/assignedMaps/active/${map.id}`] = assgnInfo;
@@ -565,9 +590,10 @@ export class MapService {
     this.db.database.ref().update(updateObj);
   }
 
-  updateAddrStat(mapId, addId, status, cb=null) {
+  updateAddrStat(mapId, addId, status, user, cb=null) {
     const updateObj = {};
     updateObj[`/assignedMaps/active/${mapId}/address/${addId}`] = status;
+    updateObj[`/assignedMaps/active/${mapId}/lastSaved`] = {id: user.userObj.uid, name: user.userInfoObj.name, when: moment().toDate() };
     this.db.database.ref().update(updateObj).then(()=> {
       if (cb) cb();
     });

@@ -53,8 +53,8 @@ export class MapsListComponent extends BaseComponent {
         _.remove(fsg.maps, map => {
           return !map.isUser(this.fireAuth.currentUser);
         });
-        if (fsg.maps.length == 0) {
-          fsg.splice(idx, 1);
+        if (fsg.maps.length == 0 && fsgMaps.length > 0) {
+          fsgMaps.splice(idx, 1);
         }
       });
       this.hasMaps = fsgMaps && fsgMaps.length > 0;

@@ -3,56 +3,21 @@
     <md-card *ngIf="data.consumer.mapStarted">
       <md-card-content>
         <span><h3>{{ data.consumer.currentAddrTitle }} </h3></span>
-        <md-radio-group class="addrstat-radio-group" name="stat" [(ngModel)]="data.consumer.currentAddr.addObj.status">
-          <md-radio-button class="addrstat-radio-button" *ngFor="let stat of data.consumer.mapService.addrStatuses" [value]="stat.val">
+        <md-radio-group *ngIf="!data.consumer.hasMultiAdds()" class="addrstat-radio-group" name="stat" [(ngModel)]="data.consumer.selectedAddObj.status">
+          <md-radio-button class="addrstat-radio-button" *ngFor="let stat of data.consumer.addrStatuses" [value]="stat.val">
             {{ stat.label }}
           </md-radio-button>
         </md-radio-group>
-        <!-- <md-button-toggle-group name="status" [vertical]="true" color="accent" (change)="data.consumer.onStatusChange($event)">
-          <md-button-toggle value="1">
-            Done
-          </md-button-toggle>
-          <md-button-toggle value="2">
-            Not at Home - 1
-          </md-button-toggle>
-          <md-button-toggle value="3" >
-            Not at Home - 2
-          </md-button-toggle>
-          <md-button-toggle value="4" >
-            Not Chinese
-          </md-button-toggle>
-          <md-button-toggle value="5" >
-            Do not call
-          </md-button-toggle>
-          <md-button-toggle value="4" >
-            Phone Witnessing
-          </md-button-toggle>
-        </md-button-toggle-group> -->
-        <!-- <md-list>
-          <md-list-item>
-            <button md-raised-button color="accent" style="width: 150px;"> Done </button>
+        <md-list *ngIf="data.consumer.hasMultiAdds()">
+          <md-list-item *ngFor="let addObj of data.consumer.currentAddr.addObj">
+            <button md-raised-button color="accent" (click)="data.consumer.selectAdd(addObj)"> {{ data.consumer.getAddressTitle(addObj) }} </button>
           </md-list-item>
-          <md-list-item>
-            <button md-raised-button color="accent" style="width: 150px;"> Not at Home - 1 </button>
-          </md-list-item>
-          <md-list-item>
-            <button md-raised-button color="accent" style="width: 150px;"> Not at Home - 2 </button>
-          </md-list-item>
-          <md-list-item>
-            <button md-raised-button color="accent" style="width: 150px;"> Not Chinese </button>
-          </md-list-item>
-          <md-list-item>
-            <button md-raised-button color="accent" style="width: 150px;"> Do not call </button>
-          </md-list-item>
-          <md-list-item>
-            <button md-raised-button color="accent" style="width: 150px;"> Phone Witnessing </button>
-          </md-list-item>
-        </md-list> -->
+        </md-list>
       </md-card-content>
       <md-card-actions>
-        <button md-fab (click)="data.consumer.saveStatus()"><md-icon>save</md-icon></button>
-        <a target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab ><md-icon svgIcon="google-map"></md-icon></a>
-        <button md-fab (click)="data.consumer.closeAddrDlg()"><md-icon>cancel</md-icon></button>
+        <button *ngIf="data.consumer.currentGmapUrl" md-fab (click)="data.consumer.saveStatus()"><md-icon>save</md-icon></button>
+        <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab ><md-icon svgIcon="google-map"></md-icon></a>
+        <button md-fab (click)="data.consumer.cancelAddrDlg()"><md-icon>cancel</md-icon></button>
       </md-card-actions>
     </md-card>
     <md-card *ngIf="!data.consumer.mapStarted">
@@ -64,8 +29,8 @@
       </md-card-content>
       <md-card-actions>
         <!-- <button md-fab *ngIf="data.consumer.currentMap" (click)="data.consumer.startMap()" ><md-icon>play_arrow</md-icon></button> -->
-        <a target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab ><md-icon svgIcon="google-map"></md-icon></a>
-        <button md-fab (click)="data.consumer.closeAddrDlg()"><md-icon>cancel</md-icon></button>
+        <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab ><md-icon svgIcon="google-map"></md-icon></a>
+        <button md-fab (click)="data.consumer.cancelAddrDlg()"><md-icon>cancel</md-icon></button>
       </md-card-actions>
     </md-card>
   </form>

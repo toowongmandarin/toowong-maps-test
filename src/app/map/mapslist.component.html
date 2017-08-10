@@ -23,6 +23,8 @@
         <md-chip *ngIf="map.assgnObj && map.assgnObj.expiry">Expiry: {{ map.assgnObj.expiry | date:'dd MMM y'}}</md-chip>
         <md-chip *ngIf="map.hasOwner()">Owner: {{ map.getOwner().name}} </md-chip>
         <md-chip *ngIf="map.hasUsers()">Users: {{ getMapUsers(map) }}</md-chip>
+        <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last saved by: {{ map.assgnObj.lastSaved.name }}</md-chip>
+        <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last saved on: {{ map.assgnObj.lastSaved.when  | date:'dd MMM y' }} </md-chip>
         <md-chip *ngIf="map.mapObj.lastCompleted">Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</md-chip>
         <md-chip *ngIf="map.assgnObj.prevOwner">Last Owner: {{ map.assgnObj.prevOwner.name }}</md-chip>
         <md-chip>Addresses: {{map.addressCount}}</md-chip>

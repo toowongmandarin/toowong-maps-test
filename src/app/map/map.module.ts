@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { AgmCoreModule } from '@agm/core';
-import { MapComponent, AddressDlgComponent } from './map.component';
+import { MapComponent, AddressDlgComponent, AddressListDlgComponent } from './map.component';
 import { MapsListComponent } from './mapslist.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -44,9 +44,9 @@ import { HttpModule } from '@angular/http';
     CovalentMessageModule,
     AuthModule
    ],
-  declarations: [ MapComponent, MapsListComponent, MarkerClusterDirective, LoadingDialog, MapShareComponent, MapShareDlgComponent, AddressDlgComponent ],
-  exports:      [ MapComponent, MapsListComponent, MarkerClusterDirective, MapShareComponent, MapShareDlgComponent, AddressDlgComponent ],
+  declarations: [ MapComponent, MapsListComponent, MarkerClusterDirective, LoadingDialog, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent ],
+  exports:      [ MapComponent, MapsListComponent, MarkerClusterDirective, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent ],
   providers:    [ MapService, WindowRef ],
-  entryComponents: [ LoadingDialog, MapShareDlgComponent, AddressDlgComponent ]
+  entryComponents: [ LoadingDialog, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent ]
 })
 export class MapModule { }
