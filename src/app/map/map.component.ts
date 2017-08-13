@@ -65,6 +65,8 @@ export class MapComponent extends BaseComponent {
   addrStatuses: any;
   locationSearching: boolean = false;
   locationWatch: any;
+  currentFeedbackUrl: string;
+  addUrl: string;
 
   constructor(protected mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, private winRef: WindowRef, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     super();
@@ -73,6 +75,8 @@ export class MapComponent extends BaseComponent {
     this.requireLogin();
     iconRegistry.addSvgIcon('fit-map',
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/fitmap.svg'));
+    iconRegistry.addSvgIcon('add-address',
+        sanitizer.bypassSecurityTrustResourceUrl('/assets/images/add_address.svg'));
   }
 
   postLoginSetup() {
@@ -191,6 +195,8 @@ export class MapComponent extends BaseComponent {
       if (this.winRef.nativeWindow.innerWidth <= this.shortenTitleWidth) {
         this.title = `Map ${this.mapService.maps[0].terId}`;
       }
+      const fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
+      this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${this.mapService.maps[0].terId}&entry.1534052334=${fullName}`;
       this.hideLoadingDialog();
       this.triggerUpdate = true;
       this.subs.push(this.onAddressClick.subscribe(data => {
@@ -205,6 +211,7 @@ export class MapComponent extends BaseComponent {
           this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
           this.currentGmapUrl = this.getGmapUrl(this.currentAddr.addObj);
           this.selectedAddObj = this.currentAddr.addObj;
+          this.buildFeedbackUrl();
         }
         this.showAddrDlg();
       }));
@@ -313,6 +320,10 @@ export class MapComponent extends BaseComponent {
     return this.fireAuth.currentUser && this.fireAuth.currentUser.isAdmin();
   }
 
+  isUpdater() {
+    return this.fireAuth.currentUser && (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater() );
+  }
+
   onStatusChange(item) {
 
   }
@@ -338,6 +349,12 @@ export class MapComponent extends BaseComponent {
     this.currentAddrTitle = this.getAddressTitle(addObj);
     this.currentGmapUrl = this.getGmapUrl(addObj);
     this.selectedAddObj = addObj;
+    this.buildFeedbackUrl();
+  }
+
+  buildFeedbackUrl() {
+    const fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
+    this.currentFeedbackUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=${this.currentAddrTitle}&entry.45257833&entry.681741514=${this.mapService.maps[0].terId}&entry.1482719893=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748&entry.1534052334`
   }
 
   viewList() {
@@ -386,6 +403,8 @@ export class AddressDlgComponent {
   constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon('google-map',
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/google-maps.svg'));
+    iconRegistry.addSvgIcon('edit-address',
+        sanitizer.bypassSecurityTrustResourceUrl('/assets/images/edit_address.svg'));
   }
 }
 

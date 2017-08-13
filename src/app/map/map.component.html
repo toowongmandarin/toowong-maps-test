@@ -10,10 +10,10 @@
       <md-icon *ngIf="showLocation && locationSearching">location_searching</md-icon>
     </button>
   </span>
-  <span><button md-mini-fab (click)="viewList()" style="margin-right: 5px;" ><md-icon>view_list</md-icon></button></span>
+  <span *ngIf="isUpdater()"><button md-mini-fab (click)="viewList()" style="margin-right: 5px;" ><md-icon>view_list</md-icon></button></span>
   <span><button md-mini-fab (click)="fitMap()" style="margin-right: 5px;" ><md-icon svgIcon="fit-map"></md-icon></button></span>
+  <span><a href="{{ addUrl }}" target="_blank" md-mini-fab style="margin-right: 5px;"><md-icon svgIcon="add-address"></md-icon></a></span>
   <span><a md-mini-fab [routerLink]="['/home']" style="margin-right: 5px;"><md-icon>home</md-icon></a></span>
-  <span><a md-mini-fab target="_blank" href="https://docs.google.com/document/d/1sNfzBlGop98HkbRW46PdGk0K2Hg8TLbHLkmysjLExKw/edit?usp=drive_web"><md-icon>help</md-icon></a></span>
 </md-toolbar>
 <!-- <md-toolbar [ngClass]="'bgc-yellow-100 marginTopBottom-2'" *ngIf="isAdmin()">
   <span><md-button-toggle style="margin-right: 10px;" (change)="toggleShowInfo($event)"><md-icon>info</md-icon></md-button-toggle></span>

@@ -1,4 +1,10 @@
 <div md-dialog-content>
+  <div flex="" layout="row" layout-align="center center" style="margin-top:5px;">
+  <button *ngIf="data.consumer.currentGmapUrl && data.consumer.mapStarted" md-fab (click)="data.consumer.saveStatus()" style="margin-right:5px;"><md-icon>save</md-icon></button>
+  <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab style="margin-right:5px;"><md-icon svgIcon="google-map"></md-icon></a>
+  <a *ngIf="!data.consumer.hasMultiAdds()" href="{{ data.consumer.currentFeedbackUrl }}" target="_blank" md-fab style="margin-right:5px;"><md-icon svgIcon="edit-address"></md-icon></a>
+  <button md-fab (click)="data.consumer.cancelAddrDlg()"><md-icon>cancel</md-icon></button>
+</div>
   <form name='addrForm'>
     <md-card *ngIf="data.consumer.mapStarted">
       <md-card-content>
@@ -14,11 +20,6 @@
           </md-list-item>
         </md-list>
       </md-card-content>
-      <md-card-actions>
-        <button *ngIf="data.consumer.currentGmapUrl" md-fab (click)="data.consumer.saveStatus()"><md-icon>save</md-icon></button>
-        <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab ><md-icon svgIcon="google-map"></md-icon></a>
-        <button md-fab (click)="data.consumer.cancelAddrDlg()"><md-icon>cancel</md-icon></button>
-      </md-card-actions>
     </md-card>
     <md-card *ngIf="!data.consumer.mapStarted">
       <md-card-content>
@@ -27,11 +28,6 @@
             If you are expecting to work on this map, please ask any map updaters to assign this map to an owner.
         </div>
       </md-card-content>
-      <md-card-actions>
-        <!-- <button md-fab *ngIf="data.consumer.currentMap" (click)="data.consumer.startMap()" ><md-icon>play_arrow</md-icon></button> -->
-        <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab ><md-icon svgIcon="google-map"></md-icon></a>
-        <button md-fab (click)="data.consumer.cancelAddrDlg()"><md-icon>cancel</md-icon></button>
-      </md-card-actions>
     </md-card>
   </form>
 </div>
