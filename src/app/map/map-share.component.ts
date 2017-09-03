@@ -28,6 +28,7 @@ export class MapShareComponent extends BaseComponent {
   shareCardTitle: string = 'Map Users';
   shareCardDesc: string = `A user will have access to the map within the day of the assignment. After this time, the map will be removed from the user's list. Please reshare again if needed.`;
   ownerMode: boolean = false; // whether to set owners or sharers
+  confirmDlg: MdDialogRef<any>;
 
   constructor(dialog: MdDialog, fireAuth: AuthService, protected mapService: MapService, private winRef: WindowRef) {
     super();
@@ -104,6 +105,18 @@ export class MapShareComponent extends BaseComponent {
     return this.map.hasOwner() && this.map.isOwner(this.fireAuth.currentUser);
   }
 
+  confirmReturnDlg() {
+    this.confirmDlg = this.dialog.open(MapReturnConfirmDlgComponent, {
+      data: {consumer: this},
+      disableClose: true
+    });
+  }
+
+  closeConfirmDlg() {
+    this.confirmDlg.close();
+    this.confirmDlg = null;
+  }
+
   returnMap() {
     if (this.fireAuth.currentUser.isAdmin()) {
       this.mapService.removeUsers(this.map, this.map.getUsersList());
@@ -116,6 +129,7 @@ export class MapShareComponent extends BaseComponent {
         this.mapService.removeOwner(this.map, this.map.getOwner());
       }
     }
+    this.closeConfirmDlg();
   }
 
   onItemAdded(item) {
@@ -141,12 +155,20 @@ export class MapShareComponent extends BaseComponent {
 })
 export class MapShareDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any) {
-
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
   }
 
   displayFn(mapUser: MapsUser):string {
     return mapUser ? mapUser.userInfoObj.name : "";
   }
 
+}
+
+@Component({
+  selector: 'share-dlg',
+  templateUrl: './map-returnconfirmdlg.component.html'
+})
+export class MapReturnConfirmDlgComponent {
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
+  }
 }

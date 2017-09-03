@@ -1,0 +1,12 @@
+<div md-dialog-content>
+  <md-card>
+    <md-card-title>
+      <h4>Are you sure want to return this map?</h4>
+    </md-card-title>
+    <md-card-subtitle>If you are Field Service Group overseer or you are assigned to take a group, consider reusing this map.</md-card-subtitle>
+    <md-card-actions>
+      <button md-raised-button color="accent" (click)="data.consumer.returnMap()">Yes</button>
+      <button md-raised-button color="accent" (click)="data.consumer.closeConfirmDlg()">No</button>
+    </md-card-actions>
+  </md-card>
+</div>

@@ -1,0 +1,26 @@
+<div md-dialog-content>
+  <form name='selectUserForm'>
+    <md-card>
+      <md-card-header>
+        <md-card-title>
+          <h4>{{data.consumer.userSelectTitle}}</h4>
+        </md-card-title>
+        <md-card-subtitle>{{ data.consumer.userSelectDesc }}</md-card-subtitle>
+      </md-card-header>
+      <md-card-content>
+        <tag-input [(ngModel)]="data.consumer.selectedUsers" name="selectUserDlg"
+           [editable]="true" [identifyBy]="'id'" [displayBy]="'name'"
+            [onlyFromAutocomplete]="true" [placeholder]="data.consumer.placeHolderTxt" [secondaryPlaceholder]="data.consumer.placeHolderTxt">
+           <tag-input-dropdown [appendToBody]="false" [autocompleteItems]='data.consumer.userList' [identifyBy]="'$key'" [displayBy]="'name'"></tag-input-dropdown>
+        </tag-input>
+      </md-card-content>
+    </md-card>
+  </form>
+  <md-dialog-actions>
+    <button md-mini-fab (click)="data.consumer.sendResetPassword()"><md-icon>save</md-icon></button>
+    <button md-mini-fab (click)="data.consumer.cancel()"><md-icon>cancel</md-icon></button>
+  </md-dialog-actions>
+  <div>
+    {{data.consumer.errorMsg}}
+  </div>
+</div>

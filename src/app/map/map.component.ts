@@ -66,12 +66,14 @@ export class MapComponent extends BaseComponent {
   locationSearching: boolean = false;
   locationWatch: any;
   currentFeedbackUrl: string;
+
   addUrl: string;
 
-  constructor(protected mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, private winRef: WindowRef, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+  constructor(public mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, public winRef: WindowRef, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     super();
     this.dialog = dialog;
     this.fireAuth = fireAuth;
+    winRef.redirHttps();
     this.requireLogin();
     iconRegistry.addSvgIcon('fit-map',
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/fitmap.svg'));
@@ -176,8 +178,8 @@ export class MapComponent extends BaseComponent {
   loadSingleMap(mapBase) {
     this.minimumClusterSize = 200;
     this.subs.push(this.mapService.loadMapMarkersObs(mapBase, this.mapId).subscribe(map => {
-      console.log(`Map: `);
-      console.log(map);
+      // console.log(`Map: `);
+      // console.log(map);
       this.mapStarted = map.assgnObj.$exists() && !_.isEmpty(map.assgnObj.started);
       this.currentMap = map;
 
@@ -196,7 +198,9 @@ export class MapComponent extends BaseComponent {
         this.title = `Map ${this.mapService.maps[0].terId}`;
       }
       const fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
-      this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${this.mapService.maps[0].terId}&entry.1534052334=${fullName}`;
+      const terId = this.mapService.maps[0].terId;
+      this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=${terId}&entry.1482719893=${fullName}&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=${terId}&entry.138422963=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${terId}&entry.1534052334=${fullName}&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=${terId}&entry.913416032=${fullName}`;
+      // this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${this.mapService.maps[0].terId}&entry.1534052334=${fullName}`;
       this.hideLoadingDialog();
       this.triggerUpdate = true;
       this.subs.push(this.onAddressClick.subscribe(data => {
@@ -211,6 +215,9 @@ export class MapComponent extends BaseComponent {
           this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
           this.currentGmapUrl = this.getGmapUrl(this.currentAddr.addObj);
           this.selectedAddObj = this.currentAddr.addObj;
+          if (_.isUndefined(this.selectedAddObj.status)) {
+            this.selectedAddObj.status = 0;
+          }
           this.buildFeedbackUrl();
         }
         this.showAddrDlg();
@@ -220,6 +227,22 @@ export class MapComponent extends BaseComponent {
 
   startMap(mapObj: any) {
 
+  }
+
+  isNotAtHome() {
+    return this.currentAddr && this.currentAddr.map.getStatus(this.currentAddr.addId) == 3;
+  }
+
+  hasDetail() {
+    return this.currentAddr && this.currentAddr.map.getStatusDetail(this.currentAddr.addId);
+  }
+
+  getLastVisited() {
+    const detail = this.currentAddr.map.getStatusDetail(this.currentAddr.addId);
+    if (detail) {
+      return detail.nh_when;
+    }
+    return null;
   }
 
   getAddressTitle(addrObj: any) {
@@ -265,7 +288,8 @@ export class MapComponent extends BaseComponent {
 
   closeAddrDlg() {
     console.log(`Closing dialog...`);
-    this.addrDlg.close();
+    // this.addrDlg.close();
+    this.dialog.closeAll();
     this.addrDlg = null;
   }
 
@@ -336,7 +360,10 @@ export class MapComponent extends BaseComponent {
     this.closeAddrDlg();
     this.showLoadingDialog();
     console.log(`Status: ${status}`);
-    this.mapService.updateAddrStat(mapId, addId, status, this.fireAuth.currentUser, () => {
+    this.mapService.updateAddrStat(mapId, addId, status, this.fireAuth.currentUser, (addId, status, nhData) => {
+      console.log(`Manulaly setting Status: ${status}`);
+      this.currentAddr.map.setStatus(addId, status);
+      this.currentAddr.map.setStatusDetail(addId, nhData);
       this.selectedAddObj = null;
     });
   }
@@ -354,23 +381,24 @@ export class MapComponent extends BaseComponent {
 
   buildFeedbackUrl() {
     const fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
-    this.currentFeedbackUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=${this.currentAddrTitle}&entry.45257833&entry.681741514=${this.mapService.maps[0].terId}&entry.1482719893=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748&entry.1534052334`
+    const terId = this.mapService.maps[0].terId;
+    this.currentFeedbackUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=${this.currentAddrTitle}&entry.45257833&entry.681741514=${terId}&entry.1482719893=${fullName}&entry.1683213160=%E4%B8%8D%E6%98%AF&entry.293956968=${this.currentAddrTitle}&entry.602343366&entry.2071713990=${terId}&entry.138422963=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${terId}&entry.1534052334=${fullName}&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=${terId}&entry.913416032=${fullName}`;
+    // this.currentFeedbackUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=${this.currentAddrTitle}&entry.45257833&entry.681741514=${this.mapService.maps[0].terId}&entry.1482719893=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748&entry.1534052334`
   }
 
   viewList() {
     this.getStatuses();
-    if (this.addrListDlg) {
-      this.closeAddrListDlg();
-    }
-    this.addrListDlg = this.dialog.open(AddressListDlgComponent, {
-      data: {consumer: this},
-      disableClose: true
-    });
+
+      this.addrListDlg = this.dialog.open(AddressListDlgComponent, {
+        data: {consumer: this},
+        disableClose: true
+      });
+
   }
 
   closeAddrListDlg() {
     this.addrListDlg.close();
-    this.addrListDlg = null;
+    // this.addrListDlg = null;
   }
 
   getAddressTitleWithStatus(addObj) {
@@ -392,6 +420,7 @@ export class MapComponent extends BaseComponent {
     }
     return label;
   }
+
 }
 
 @Component({
@@ -400,7 +429,7 @@ export class MapComponent extends BaseComponent {
 })
 export class AddressDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon('google-map',
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/google-maps.svg'));
     iconRegistry.addSvgIcon('edit-address',
@@ -414,6 +443,6 @@ export class AddressDlgComponent {
 })
 export class AddressListDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
   }
 }

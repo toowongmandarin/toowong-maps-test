@@ -88,8 +88,8 @@ export class AuthService {
       return this.getUserInfo(this.currentUser);
     })
     .subscribe(user => {
-      console.log(`Emitting...`);
-      console.log(this.currentUser);
+      // console.log(`Emitting...`);
+      // console.log(this.currentUser);
       this.onCurrentUserInfo.emit(this.currentUser);
     });
   }
@@ -118,6 +118,16 @@ export class AuthService {
         return Observable.of(this.usersList);
       });
     }
+  }
+
+  sendPasswordReset(email: string, cb:any=null) {
+    this.af.auth.sendPasswordResetEmail(email).then(()=> {
+      if (cb) cb();
+    });
+  }
+
+  createUser(name: string, email: string, role: string) {
+    this.db.object(`/users/requests/pending/createUser/${Date.now()}`).update({name: name, email: email, role: role});
   }
 
 }

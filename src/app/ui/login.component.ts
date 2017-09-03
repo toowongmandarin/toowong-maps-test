@@ -17,9 +17,9 @@ export class LoginComponent {
   isResettingPwd: boolean;
   test:any;
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) protected data: any) {}
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {}
 
-  login() {
+  login(event:any) {
     console.log(`Logging in...`);
     const creds = {email:this.email, password:this.password};
     this.onLogin.emit(creds);

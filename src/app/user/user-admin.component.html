@@ -1,0 +1,20 @@
+<span *ngIf="isUpdater()">
+  <button md-icon-button [mdMenuTriggerFor]="menu" >
+    <md-icon>more_vert</md-icon>
+  </button>
+<md-menu #menu="mdMenu" >
+  <button md-menu-item (click)="resetPassword()">
+    <md-icon>person_outline</md-icon>
+    <span>Reset Password</span>
+  </button>
+  <button md-menu-item (click)="addUser()">
+    <md-icon>person_add</md-icon>
+    <span>Add User</span>
+  </button>
+  <button md-menu-item (click)="logout()">
+    <md-icon>exit_to_app</md-icon>
+    <span>Logout</span>
+  </button>
+</md-menu>
+</span>
+<span *ngIf="!isUpdater()" style="margin-left: 5px;"><button md-mini-fab (click)="logout()" ><md-icon>exit_to_app</md-icon></button></span>

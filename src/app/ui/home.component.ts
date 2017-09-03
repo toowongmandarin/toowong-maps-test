@@ -16,7 +16,7 @@ export class HomeComponent extends BaseComponent {
   @ViewChild('myMapsList')
   private mapListComp: MapsListComponent;
   addUrl: string;
-  
+
   constructor(fireAuth: AuthService, dialog: MdDialog, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     super();
     this.dialog = dialog;
@@ -30,7 +30,8 @@ export class HomeComponent extends BaseComponent {
   postLoginSetup() {
     console.log(`Home Component Post Login`);
     const fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
-    this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=&entry.1534052334=${fullName}`;
+    this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=&entry.1482719893=&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=&entry.138422963=&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=&entry.1534052334=${fullName}&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=&entry.913416032=${fullName}`;
+    // this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=&entry.1534052334=${fullName}`;
     this.mapListComp.load();
   }
 

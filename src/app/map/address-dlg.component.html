@@ -1,15 +1,17 @@
-<div md-dialog-content>
-  <div flex="" layout="row" layout-align="center center" style="margin-top:5px;">
-  <button *ngIf="data.consumer.currentGmapUrl && data.consumer.mapStarted" md-fab (click)="data.consumer.saveStatus()" style="margin-right:5px;"><md-icon>save</md-icon></button>
-  <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab style="margin-right:5px;"><md-icon svgIcon="google-map"></md-icon></a>
-  <a *ngIf="!data.consumer.hasMultiAdds()" href="{{ data.consumer.currentFeedbackUrl }}" target="_blank" md-fab style="margin-right:5px;"><md-icon svgIcon="edit-address"></md-icon></a>
-  <button md-fab (click)="data.consumer.cancelAddrDlg()"><md-icon>cancel</md-icon></button>
-</div>
-  <form name='addrForm'>
+<form name='addrForm'>
+  <div md-dialog-content>
+    <div flex="" layout="row" layout-align="center center" style="margin-top:5px;">
+      <button *ngIf="data.consumer.currentGmapUrl && data.consumer.mapStarted" md-fab (click)="data.consumer.saveStatus()" style="margin-right:5px;"><md-icon>save</md-icon></button>
+      <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" md-fab style="margin-right:5px;"><md-icon svgIcon="google-map"></md-icon></a>
+      <a *ngIf="!data.consumer.hasMultiAdds()" href="{{ data.consumer.currentFeedbackUrl }}" target="_blank" md-fab style="margin-right:5px;"><md-icon svgIcon="edit-address"></md-icon></a>
+      <button md-fab (click)="data.consumer.cancelAddrDlg()"><md-icon>cancel</md-icon></button>
+    </div>
     <md-card *ngIf="data.consumer.mapStarted">
       <md-card-content>
-        <span><h3>{{ data.consumer.currentAddrTitle }} </h3></span>
-        <md-radio-group *ngIf="!data.consumer.hasMultiAdds()" class="addrstat-radio-group" name="stat" [(ngModel)]="data.consumer.selectedAddObj.status">
+        <div><h3>{{ data.consumer.currentAddrTitle }} </h3></div>
+        <div *ngIf="data.consumer.isNotAtHome() && data.consumer.hasDetail()"><h4>Last Visited: {{ data.consumer.getLastVisited() | date:'EEE, hh:mm a, dd MMM y' }} </h4></div>
+        <div *ngIf="data.consumer.isUpdater() && data.consumer.currentAddr.addObj.tel"><h5>PH: {{ data.consumer.currentAddr.addObj.tel }}</h5></div>
+        <md-radio-group *ngIf="!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj" class="addrstat-radio-group" name="stat" [(ngModel)]="data.consumer.selectedAddObj.status">
           <md-radio-button class="addrstat-radio-button" *ngFor="let stat of data.consumer.addrStatuses" [value]="stat.val">
             {{ stat.label }}
           </md-radio-button>
@@ -29,5 +31,5 @@
         </div>
       </md-card-content>
     </md-card>
-  </form>
-</div>
+  </div>
+</form>

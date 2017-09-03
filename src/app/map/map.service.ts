@@ -73,6 +73,29 @@ export class Map {
     const inUserList = _.find(this.getUsersList(), (u)=> {return u.id == user.userInfoObj.$key}) != null;
     return (this.hasOwner() &&  this.isOwner(user)) || (this.hasUsers() && inUserList);
   }
+
+  getStatus(addId: string) {
+    return _.get(this.assgnObj, `address.${addId}`);
+  }
+
+  // only for manually setting the status, does not synch or save to backend!
+  setStatus(addId: string, status: any) {
+    if (_.isUndefined(this.assgnObj.address)) {
+      this.assgnObj.address = {};
+    }
+    this.assgnObj.address[addId] = status;
+  }
+
+  getStatusDetail(addId: string) {
+    return _.get(this.assgnObj, `det.${addId}`);
+  }
+
+  setStatusDetail(addId: string, detailData: any) {
+    if (_.isUndefined(this.assgnObj.det)) {
+      this.assgnObj.det = {};
+    }
+    this.assgnObj.det[addId] = detailData;
+  }
 }
 
 export class Fsg {
@@ -85,6 +108,7 @@ export class Fsg {
 }
 
 export class AddressMarker {
+  map: Map;
   addObj: any;
   mapObj: any;
   lat: number;
@@ -152,7 +176,7 @@ export class MapService {
     .flatMap(mapObj => {
       return this.db.object(`/assignedMaps/active/${mapId}`).flatMap(assgnObj => {
         console.log(`Got assigned maps object...`);
-        console.log(assgnObj);
+        // console.log(assgnObj);
         mapBin.assgnObj = assgnObj;
         return Observable.of(mapObj);
       });
@@ -212,7 +236,7 @@ export class MapService {
       }
       markerIcons[stat.val] = this.createStatusMarkerIconConfig(scaledMarkerSize, stat.val);
     });
-    console.log(this.mapMarkers);
+    // console.log(this.mapMarkers);
     _.forEach(map.addresses, addObj => {
       let marker = null;
       const addId = addObj.$key;
@@ -229,6 +253,7 @@ export class MapService {
       } else {
         marker = new AddressMarker();
         marker.addId = [addId];
+        marker.map = map;
       }
       addObj.clat = _.toNumber(addObj.clat);
       addObj.clong = _.toNumber(addObj.clong);
@@ -284,7 +309,7 @@ export class MapService {
             addObjIcon = markerIcons[0];
           }
         }
-        console.log(addObjIcon);
+        // console.log(addObjIcon);
         multiMarker.marker = new google.maps.Marker({
           position: new google.maps.LatLng(addObj.clat, addObj.clong),
           icon: addObjIcon,
@@ -547,8 +572,15 @@ export class MapService {
     const updateObj = {};
     const assgnInfo:any = {
       owner: {id: owner.id, name: owner.name, expiry: owner.expiry},
-      expiry: owner.expiry
+      expiry: owner.expiry,
+      started: map.assgnObj.started
     };
+    if (map.assgnObj.address) {
+      assgnInfo.address =  map.assgnObj.address;
+    }
+    if (map.assgnObj.users) {
+      assgnInfo.users = map.assgnObj.users;
+    }
     if (_.isEmpty(map.assgnObj.started)) {
       assgnInfo.started = moment().toDate();
     }
@@ -591,12 +623,54 @@ export class MapService {
   }
 
   updateAddrStat(mapId, addId, status, user, cb=null) {
-    const updateObj = {};
+    const updateObj: any = {};
+    const nhData: any = {};
     updateObj[`/assignedMaps/active/${mapId}/address/${addId}`] = status;
+    if (status == 3 || status == 4) {
+      // not at home 1 or 2
+      nhData.nh_when = moment().toDate();
+      nhData.nh_by = user.userInfoObj.name;
+      updateObj[`/assignedMaps/active/${mapId}/det/${addId}/nh_when`] = nhData.nh_when;
+      updateObj[`/assignedMaps/active/${mapId}/det/${addId}/nh_by`] = nhData.nh_by;
+    }
     updateObj[`/assignedMaps/active/${mapId}/lastSaved`] = {id: user.userObj.uid, name: user.userInfoObj.name, when: moment().toDate() };
     this.db.database.ref().update(updateObj).then(()=> {
-      if (cb) cb();
+      if (cb) cb(addId, status, nhData);
     });
+  }
+
+  getCompletionPercentage(map: Map) {
+    if (map.mapObj.addresses && map.assgnObj && !_.isUndefined(map.assgnObj.address)) {
+      return Math.round((this.getVisitedAddresses(map) / map.addressCount) * 100);
+    } else {
+      return 0;
+    }
+  }
+
+  getVisitedAddresses(map: Map) {
+    let numDone = 0;
+    if (map.mapObj.addresses && map.assgnObj && !_.isUndefined(map.assgnObj.address)) {
+      _.forOwn(map.mapObj.addresses, (addId, key) => {
+        if (!_.isUndefined(map.assgnObj.address[addId])) {
+          const status = map.assgnObj.address[addId];
+          switch (status) {
+            case 1:
+            case 2:
+            case 4:
+            case 5:
+            case 7:
+              numDone++;
+          }
+        }
+      });
+      return numDone;
+    } else {
+      return 0;
+    }
+  }
+
+  getRemainingAddresses(map: Map) {
+    return map.addressCount - this.getVisitedAddresses(map);
   }
 
 }

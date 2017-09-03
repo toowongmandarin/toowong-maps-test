@@ -17,18 +17,21 @@
       </md-card-title>
     </md-card-header>
     <md-card-content>
-      <md-chip-list selectable="false">
-        <!-- <md-chip >Completion Status: </md-chip> -->
-        <md-chip *ngIf="map.assgnObj && map.assgnObj.started">Started: {{ map.assgnObj.started | date:'dd MMM y'}}</md-chip>
-        <md-chip *ngIf="map.assgnObj && map.assgnObj.expiry">Expiry: {{ map.assgnObj.expiry | date:'dd MMM y'}}</md-chip>
-        <md-chip *ngIf="map.hasOwner()">Owner: {{ map.getOwner().name}} </md-chip>
-        <md-chip *ngIf="map.hasUsers()">Users: {{ getMapUsers(map) }}</md-chip>
-        <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last saved by: {{ map.assgnObj.lastSaved.name }}</md-chip>
-        <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last saved on: {{ map.assgnObj.lastSaved.when  | date:'dd MMM y' }} </md-chip>
-        <md-chip *ngIf="map.mapObj.lastCompleted">Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</md-chip>
-        <md-chip *ngIf="map.assgnObj.prevOwner">Last Owner: {{ map.assgnObj.prevOwner.name }}</md-chip>
-        <md-chip>Addresses: {{map.addressCount}}</md-chip>
-      </md-chip-list>
+      <md-progress-bar class="marginBottom-10" *ngIf="map.assgnObj && map.assgnObj.started" [value]="getCompletionPercentage(map)" [color]="primary"></md-progress-bar>
+      <div>
+        <md-chip-list selectable="false">
+          <md-chip *ngIf="map.assgnObj && map.assgnObj.started">Remaining: {{ getRemaining(map) }}</md-chip>
+          <md-chip>Addresses: {{map.addressCount}}</md-chip>
+          <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used on: {{ map.assgnObj.lastSaved.when  | date:'dd MMM y' }} </md-chip>
+          <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used by: {{ map.assgnObj.lastSaved.name }}</md-chip>
+          <md-chip *ngIf="map.hasOwner()">Owner: {{ map.getOwner().name}} </md-chip>
+          <md-chip *ngIf="map.hasUsers()">Users: {{ getMapUsers(map) }}</md-chip>
+          <md-chip *ngIf="map.assgnObj && map.assgnObj.started">Started: {{ map.assgnObj.started | date:'dd MMM y'}}</md-chip>
+          <md-chip *ngIf="map.assgnObj && map.assgnObj.expiry">Expiry: {{ map.assgnObj.expiry | date:'dd MMM y'}}</md-chip>
+          <md-chip *ngIf="map.mapObj.lastCompleted && isUpdater()">Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</md-chip>
+          <md-chip *ngIf="map.assgnObj.prevOwner && isUpdater()" >Last Owner: {{ map.assgnObj.prevOwner.name }}</md-chip>
+        </md-chip-list>
+      </div>
     </md-card-content>
     <md-card-actions>
       <a *ngIf="canOpenMap(map)" md-mini-fab [routerLink]="['/map', map.id]"><md-icon>map</md-icon></a>

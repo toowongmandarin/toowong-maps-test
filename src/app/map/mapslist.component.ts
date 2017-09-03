@@ -6,6 +6,7 @@ import { MdDialog, MdDialogRef } from '@angular/material';
 import { LoadingDialog } from './loading-diag.component';
 import { BaseComponent } from '../base/base.component';
 import { AuthService, MapsUser } from '../user/user.component';
+import { WindowRef } from './windowref.service';
 
 import * as _ from 'lodash';
 
@@ -21,10 +22,11 @@ export class MapsListComponent extends BaseComponent {
   hasMaps: boolean = false;
   oldFsgMaps: Fsg[];
 
-  constructor(dialog: MdDialog, fireAuth: AuthService, protected mapService: MapService) {
+  constructor(dialog: MdDialog, fireAuth: AuthService, public mapService: MapService, public winRef: WindowRef) {
     super();
     this.dialog = dialog;
     this.fireAuth = fireAuth;
+    winRef.redirHttps();
   }
 
   public load() {
@@ -61,7 +63,6 @@ export class MapsListComponent extends BaseComponent {
       if (!this.hasMaps) {
         this.oldFsgMaps = [];
         this.fsgMaps = [];
-
       }
       if (this.oldFsgMaps) {
         _.forEach(this.oldFsgMaps, (fsgMap) => {
@@ -91,8 +92,8 @@ export class MapsListComponent extends BaseComponent {
         return this.mapService.getUserMaps(this.fireAuth.currentUser);
       })
       .subscribe(userMaps => {
-        console.log(`User maps:`);
-        console.log(userMaps);
+        // console.log(`User maps:`);
+        // console.log(userMaps);
 
         if (this.fsgMaps.length > 0 && userMaps.length > 0) {
           // check if we need to add the "Your Maps"...
@@ -107,13 +108,13 @@ export class MapsListComponent extends BaseComponent {
         if (this.oldFsgMaps) {
           // record the last diag open...
           _.forEach(this.oldFsgMaps, (fsgMap) => {
-            console.log(`Old:`);
-            console.log(fsgMap);
+            // console.log(`Old:`);
+            // console.log(fsgMap);
             const currentFsg = _.find(this.fsgMaps, (curFsg) => {
               return curFsg.fsgName == fsgMap.fsgName
             });
             if (currentFsg) {
-              console.log(`Set expanded state.`);
+              // console.log(`Set expanded state.`);
               currentFsg.expanded = fsgMap.expanded;
             }
           });
@@ -141,6 +142,18 @@ export class MapsListComponent extends BaseComponent {
     //   console.log(map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
     // }
     return this.fireAuth.currentUser && (map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
+  }
+
+  getCompletionPercentage(map: Map) {
+    return this.mapService.getCompletionPercentage(map);
+  }
+
+  getRemaining(map: Map) {
+    return this.mapService.getRemainingAddresses(map);
+  }
+
+  isUpdater() {
+    return this.fireAuth.currentUser &&  ( this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
   }
 
 }
