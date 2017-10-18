@@ -9,7 +9,7 @@
         </tr>
         <tr *ngFor="let addObj of data.consumer.currentMap.addresses">
           <td width="80%">{{ data.consumer.getAddressTitle(addObj) }}</td>
-          <td width="20%">{{ data.consumer.getStatusLabel(addObj) }}</td>
+          <td width="20%" [style.background-color]="data.consumer.getStatusBgColor(addObj)">{{ data.consumer.getStatusLabel(addObj) }}</td>
         </tr>
       </table>
     </md-card-content>

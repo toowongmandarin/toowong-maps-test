@@ -63,7 +63,7 @@ export class MapShareComponent extends BaseComponent {
         this.mapService.removeUsers(this.map, this.map.getUsersList());
       } else {
         // set to 2 weeks from now...
-        this.userList[0].expiry = moment().hour(20).minute(0).second(0).add(1, 'week').toDate(); // set to expire at 8 pm eery time..
+        this.userList[0].expiry = moment().hour(20).minute(0).second(0).add(16, 'days').toDate(); // set to expire at 8 pm eery time..
         this.mapService.updateOwner(this.map, this.userList[0], this.curOwner);
       }
     } else {

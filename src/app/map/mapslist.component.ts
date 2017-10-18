@@ -85,10 +85,10 @@ export class MapsListComponent extends BaseComponent {
     console.log(`Getting all maps...`);
     this.hasMaps = true;
     if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
-      this.subs.push(this.mapService.getAllFsgMapsList().flatMap(fsgMaps => {
+      this.subs.push(this.mapService.getAllFsgMapsList(true).flatMap(fsgMaps => {
         this.fsgMaps = fsgMaps;
-        console.log("All maps:")
-        console.log(fsgMaps);
+        // console.log("All maps:")
+        // console.log(fsgMaps);
         return this.mapService.getUserMaps(this.fireAuth.currentUser);
       })
       .subscribe(userMaps => {

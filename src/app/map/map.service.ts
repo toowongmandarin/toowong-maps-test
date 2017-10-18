@@ -141,6 +141,7 @@ export class MapService {
     { val: 4, label: "Not at Home - 2" },
     { val: 5, label: "Do Not Call" },
     { val: 7, label: "Phone Witnessing" },
+    { val: 8, label: "Reported Issue" },
   ];
 
   constructor(protected db: AngularFireDatabase) {
@@ -442,7 +443,7 @@ export class MapService {
     });
   }
 
-  getAllFsgMapsList(): Observable<Fsg[]> {
+  getAllFsgMapsList(sortMaps: boolean = false): Observable<Fsg[]> {
     const mapBin = {};
     return this.getAllFsgMaps(mapBin)
     .flatMap((mapId:any) => {
@@ -483,6 +484,20 @@ export class MapService {
           fsg.maps.push(new Map(key, val.mapObj, val.assgnObj));
         }
       });
+      if (sortMaps) {
+        // Sort maps order:
+        // 1. Started date
+        // 2. Last completed
+        _.each(this.fsgs, (fsg) => {
+          const sortedMaps = _.sortBy(fsg.maps,
+          [(map) => {
+            return map.assgnObj && map.assgnObj.started ? moment(map.assgnObj.started).unix() : null;
+          }, (map) => {
+            return map.mapObj && map.mapObj.lastCompleted ? moment(map.mapObj.lastCompleted).unix() : 0;
+          }]);
+          fsg.maps = sortedMaps;
+        });
+      }
       return Observable.of(this.fsgs);
     });
   }
@@ -659,6 +674,7 @@ export class MapService {
             case 4:
             case 5:
             case 7:
+            case 8:
               numDone++;
           }
         }

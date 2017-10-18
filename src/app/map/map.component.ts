@@ -421,6 +421,35 @@ export class MapComponent extends BaseComponent {
     return label;
   }
 
+  getStatusBgColor(addObj) {
+    let bg = "#960202";
+    if (!_.isUndefined(addObj.status)) {
+      switch(addObj.status) {
+        case 1:
+          bg = "#428214";
+          break;
+        case 2:
+          bg = "#401804";
+          break;
+        case 3:
+          bg = "#e88017";
+          break;
+        case 4:
+          bg = "#8d57c2";
+          break;
+        case 5:
+          bg = "#4a5963";
+          break;
+        case 7:
+          bg = "#227874";
+          break;
+        case 8:
+          bg = "#227874";
+          break;
+      }
+    }
+    return bg;
+  }
 }
 
 @Component({
