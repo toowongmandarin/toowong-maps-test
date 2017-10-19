@@ -1,7 +1,7 @@
-import { Component,ViewChild } from '@angular/core';
+import { Component,ViewChild, Inject } from '@angular/core';
 import { AuthService, MapsUser } from '../user/user.component';
 import { MapComponent } from '../map/map.component';
-import { MdDialog, MdDialogRef, MdIconRegistry } from '@angular/material';
+import { MdDialog, MdDialogRef, MdIconRegistry, MD_DIALOG_DATA } from '@angular/material';
 import { MapsListComponent } from '../map/mapslist.component';
 import { BaseComponent } from '../base/base.component';
 import {DomSanitizer} from '@angular/platform-browser';
@@ -39,4 +39,13 @@ export class HomeComponent extends BaseComponent {
     return this.fireAuth.currentUser && (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
   }
 
+}
+
+@Component({
+  selector: 'notify-dlg',
+  templateUrl: './notify-dlg.component.html'
+})
+export class NotifyDlgComponent {
+  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
+  }
 }

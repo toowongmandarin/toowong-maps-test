@@ -16,4 +16,8 @@ export class WindowRef {
        console.log(`No https redir`);
      }
    }
+
+   location(url) {
+     this.nativeWindow.location = url;
+   }
 }

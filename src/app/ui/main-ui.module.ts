@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../environments/environment';
 import { MdButtonModule, MdCheckboxModule, MdIconModule, MdGridListModule, MdInputModule, MdListModule, MdToolbarModule } from '@angular/material';
-import { HomeComponent } from './home.component';
+import { HomeComponent, NotifyDlgComponent } from './home.component';
 import { LoginComponent } from './login.component';
 import { AuthModule } from '../user/user.module';
 import { MapModule } from '../map/map.module';
@@ -29,7 +29,8 @@ import { RouterModule } from '@angular/router';
   ],
   declarations: [
     HomeComponent,
-    LoginComponent
+    LoginComponent,
+    NotifyDlgComponent
   ],
   exports: [
     CommonModule,
@@ -42,7 +43,8 @@ import { RouterModule } from '@angular/router';
   providers: [
   ],
   entryComponents: [
-    LoginComponent
+    LoginComponent,
+    NotifyDlgComponent
   ]
 })
 export class MainUIModule {

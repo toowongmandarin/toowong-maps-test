@@ -10,6 +10,7 @@ import { WindowRef } from './windowref.service';
 import { BaseComponent } from '../base/base.component';
 import { AuthService } from '../user/user.component';
 import {DomSanitizer} from '@angular/platform-browser';
+import { NotifyDlgComponent } from '../ui/home.component';
 
 @Component({
   selector: 'map-component',
@@ -68,6 +69,7 @@ export class MapComponent extends BaseComponent {
   currentFeedbackUrl: string;
 
   addUrl: string;
+  notifyDlg: any;
 
   constructor(public mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, public winRef: WindowRef, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
     super();
@@ -119,6 +121,20 @@ export class MapComponent extends BaseComponent {
     this.onFit.emit({});
   }
 
+  accessDenied() {
+    this.title = "Access Denied";
+    this.hideLoadingDialog();
+    this.notifyDlg = this.dialog.open(NotifyDlgComponent, {
+      data: {consumer: this, title: "Access denied", subtitle: "You don't have privileges to access this page. If you think you should have access, please contact the administrator.", confirmText: "Go Home"},
+      disableClose: true
+    });
+  }
+
+  confirmNotification() {
+    this.notifyDlg.close();
+    this.winRef.location('/home');
+  }
+
   loadMaps() {
     if (!_.isEmpty(this.points)) {
       console.log(`Maps already loaded`);
@@ -128,7 +144,12 @@ export class MapComponent extends BaseComponent {
     // this.showCurrentLoc();
     this.showLoadingDialog();
     if (this.mapId == 'all') {
-      this.mapService.loadAllMapsWithMarkers(mapBase);
+      if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
+        this.mapService.loadAllMapsWithMarkers(mapBase);
+      } else {
+        this.accessDenied();
+        return;
+      }
     } else {
       // this.mapService.loadMapMarkers(mapBase, this.mapId, true);
       this.loadSingleMap(mapBase);
@@ -175,11 +196,22 @@ export class MapComponent extends BaseComponent {
     });
   }
 
+  canOpenMap(map) {
+    // if (this.fireAuth.currentUser) {
+    //   console.log(map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
+    // }
+    return this.fireAuth.currentUser && (map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
+  }
+
   loadSingleMap(mapBase) {
     this.minimumClusterSize = 200;
     this.subs.push(this.mapService.loadMapMarkersObs(mapBase, this.mapId).subscribe(map => {
-      // console.log(`Map: `);
-      // console.log(map);
+      console.log(`Map: `);
+      console.log(map);
+      if (!this.canOpenMap(map)) {
+        this.accessDenied();
+        return;
+      }
       this.mapStarted = map.assgnObj.$exists() && !_.isEmpty(map.assgnObj.started);
       this.currentMap = map;
 

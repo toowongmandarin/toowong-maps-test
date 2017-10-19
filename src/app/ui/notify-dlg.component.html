@@ -1,0 +1,14 @@
+<div md-dialog-content>
+  <md-card>
+    <md-card-title *ngIf="data.title">
+      <h4>{{data.title}}</h4>
+    </md-card-title>
+    <md-card-subtitle *ngIf="data.subtitle"><div>{{ data.subtitle }}</div></md-card-subtitle>
+    <md-card-actions>
+      <div>
+        <br/>
+        <button md-raised-button color="accent" (click)="data.consumer.confirmNotification()">{{ data.confirmText }}</button>
+      </div>
+    </md-card-actions>
+  </md-card>
+</div>
