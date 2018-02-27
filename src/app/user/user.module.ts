@@ -7,7 +7,7 @@ import { AngularFireAuthModule } from 'angularfire2/auth';
 import { environment } from '../../environments/environment';
 import { AuthService } from './user.component';
 import { UserInfoComponent } from './userinfo.component';
-import {MdMenuModule, MdButtonModule, MdIconModule, MdCardModule, MdInputModule} from '@angular/material';
+import {MatMenuModule, MatButtonModule, MatIconModule, MatCardModule, MatInputModule} from '@angular/material';
 import { UserAdminComponent, SelectUserDlgComponent, CreateUserDlgComponent } from './user-admin.component';
 import { TagInputModule } from 'ngx-chips';
 
@@ -19,11 +19,11 @@ import { TagInputModule } from 'ngx-chips';
     AngularFireDatabaseModule,
     AngularFireAuthModule,
     TagInputModule,
-    MdMenuModule,
-    MdIconModule,
-    MdButtonModule,
-    MdCardModule,
-    MdInputModule
+    MatMenuModule,
+    MatIconModule,
+    MatButtonModule,
+    MatCardModule,
+    MatInputModule
   ],
   exports: [ UserInfoComponent, UserAdminComponent, SelectUserDlgComponent, CreateUserDlgComponent],
   declarations: [ UserInfoComponent, UserAdminComponent, SelectUserDlgComponent, CreateUserDlgComponent ],

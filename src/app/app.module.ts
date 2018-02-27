@@ -6,6 +6,7 @@ import 'hammerjs';
 
 import { AppComponent } from './app.component';
 import { MainUIModule } from './ui/main-ui.module';
+import { MATERIAL_COMPATIBILITY_MODE } from '@angular/material';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,7 @@ import { MainUIModule } from './ui/main-ui.module';
     MainUIModule,
     RoutingModule
   ],
-  providers: [],
+  providers: [{provide: MATERIAL_COMPATIBILITY_MODE, useValue: true}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

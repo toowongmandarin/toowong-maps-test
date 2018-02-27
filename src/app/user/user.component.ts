@@ -18,8 +18,9 @@ export class MapsUser {
     return this.roles && this.roles.updater == true;
   }
 
-  isFsgOverseer(): boolean {
-    return this.roles && this.roles.fsgoverseer == true;
+  isFsgAssistant(fsgName: string = null): boolean {
+    return this.roles &&  _.isEmpty(fsgName) || _.isNull(fsgName) ? this.roles.fsgAssist == true
+                           : this.roles.fsgAssist == true && this.roles.fsg[fsgName] == true;
   }
 
   isPublisher(): boolean {

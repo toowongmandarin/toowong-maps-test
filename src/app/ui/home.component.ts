@@ -1,10 +1,11 @@
 import { Component,ViewChild, Inject } from '@angular/core';
 import { AuthService, MapsUser } from '../user/user.component';
 import { MapComponent } from '../map/map.component';
-import { MdDialog, MdDialogRef, MdIconRegistry, MD_DIALOG_DATA } from '@angular/material';
+import { MatDialog, MatDialogRef, MatIconRegistry, MAT_DIALOG_DATA } from '@angular/material';
 import { MapsListComponent } from '../map/mapslist.component';
 import { BaseComponent } from '../base/base.component';
 import {DomSanitizer} from '@angular/platform-browser';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'home-component',
@@ -16,8 +17,9 @@ export class HomeComponent extends BaseComponent {
   @ViewChild('myMapsList')
   private mapListComp: MapsListComponent;
   addUrl: string;
+  appTitle: string = environment.app.title;
 
-  constructor(fireAuth: AuthService, dialog: MdDialog, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+  constructor(fireAuth: AuthService, dialog: MatDialog, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     super();
     this.dialog = dialog;
     this.fireAuth = fireAuth;
@@ -46,6 +48,6 @@ export class HomeComponent extends BaseComponent {
   templateUrl: './notify-dlg.component.html'
 })
 export class NotifyDlgComponent {
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any) {
   }
 }

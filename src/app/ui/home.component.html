@@ -1,6 +1,6 @@
 <div style="text-align:center">
   <h2>
-    Macgregor Maps 2.4
+    {{ appTitle }}
   </h2>
 </div>
 <div>
@@ -9,14 +9,15 @@
      fxLayout.xs="row"
      fxLayoutAlign="space-around none"
      fxLayoutAlign.xs="start"> -->
-     <md-toolbar [ngClass]="'bgc-blue-grey-900 whiteText marginTopBottom-2'">
+     <mat-toolbar [ngClass]="'bgc-blue-grey-900 whiteText marginTopBottom-2'">
         <userinfo></userinfo>
         <span class="fill-remaining-space"></span>
-        <span><a style="margin-right: 5px;" md-mini-fab [routerLink]="['/map/all']" *ngIf="canViewAllMaps()"><md-icon >map</md-icon></a></span>
-        <span><a href="{{ addUrl }}" target="_blank" md-mini-fab style="margin-right: 5px;"><md-icon svgIcon="add-address"></md-icon></a></span>
-        <span><a md-mini-fab target="_blank" href="https://docs.google.com/document/d/1sNfzBlGop98HkbRW46PdGk0K2Hg8TLbHLkmysjLExKw/edit?usp=drive_web" ><md-icon>help</md-icon></a></span>
+        <span><a style="margin-right: 5px;" mat-mini-fab [routerLink]="['/map/all']" *ngIf="canViewAllMaps()"><mat-icon >map</mat-icon></a></span>
+        <!-- <span><a style="margin-right: 5px;" mat-mini-fab [routerLink]="['/mapadmin']" *ngIf="canViewAllMaps()"><mat-icon >edit</mat-icon></a></span> -->
+        <span><a href="{{ addUrl }}" target="_blank" mat-mini-fab style="margin-right: 5px;"><mat-icon svgIcon="add-address"></mat-icon></a></span>
+        <span><a mat-mini-fab target="_blank" href="https://docs.google.com/document/d/1sNfzBlGop98HkbRW46PdGk0K2Hg8TLbHLkmysjLExKw/edit?usp=drive_web" ><mat-icon>help</mat-icon></a></span>
         <user-admin></user-admin>
-     </md-toolbar>
+     </mat-toolbar>
    <!-- </div> -->
   <mapslist-component #myMapsList></mapslist-component>
 </div>

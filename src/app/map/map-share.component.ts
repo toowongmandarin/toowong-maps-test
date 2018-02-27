@@ -1,7 +1,7 @@
 import { Component, Input, ViewChild, EventEmitter, Output, Inject } from '@angular/core';
 import { MapService, Fsg, Map } from './map.service';
 import { Observable } from 'rxjs/Rx';
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 import { LoadingDialog } from './loading-diag.component';
 import { BaseComponent } from '../base/base.component';
 import { AuthService, MapsUser } from '../user/user.component';
@@ -15,9 +15,10 @@ import * as _ from 'lodash';
 })
 export class MapShareComponent extends BaseComponent {
   @Input() map: Map;
+  @Input() campaignMode: boolean = false;
   mapUsers: any[] = [];
   errorMsg: string;
-  shareDlg: MdDialogRef<any>;
+  shareDlg: MatDialogRef<any>;
   userList:any;
   newUsersList: any[] = [];
   removeUsersList: any[] = [];
@@ -28,9 +29,9 @@ export class MapShareComponent extends BaseComponent {
   shareCardTitle: string = 'Map Users';
   shareCardDesc: string = `A user will have access to the map within the day of the assignment. After this time, the map will be removed from the user's list. Please reshare again if needed.`;
   ownerMode: boolean = false; // whether to set owners or sharers
-  confirmDlg: MdDialogRef<any>;
+  confirmDlg: MatDialogRef<any>;
 
-  constructor(dialog: MdDialog, fireAuth: AuthService, protected mapService: MapService, private winRef: WindowRef) {
+  constructor(dialog: MatDialog, fireAuth: AuthService, protected mapService: MapService, private winRef: WindowRef) {
     super();
     this.dialog = dialog;
     this.fireAuth = fireAuth;
@@ -94,6 +95,13 @@ export class MapShareComponent extends BaseComponent {
   }
 
   canAssignOwner() {
+    let doneCtr = this.map.mapObj.doneCtr;
+    if (this.campaignMode) {
+      doneCtr = this.map.mapObj.campaignCtr;
+    }
+    if (doneCtr > 0 && !this.fireAuth.currentUser.isAdmin()) {
+      return false;
+    }
     return this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater();
   }
 
@@ -155,7 +163,7 @@ export class MapShareComponent extends BaseComponent {
 })
 export class MapShareDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any) {
   }
 
   displayFn(mapUser: MapsUser):string {
@@ -169,6 +177,6 @@ export class MapShareDlgComponent {
   templateUrl: './map-returnconfirmdlg.component.html'
 })
 export class MapReturnConfirmDlgComponent {
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any) {
   }
 }

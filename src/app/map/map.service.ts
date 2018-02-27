@@ -101,9 +101,35 @@ export class Map {
 export class Fsg {
   fsgName: string;
   maps: Map[];
-  constructor(fsgName:string, maps:Map[]) {
+  completedMapsCtr: number;
+  completionRate: number;
+  metadata: any;
+
+  constructor(fsgName:string, maps:Map[], meta:any = null) {
     this.fsgName = fsgName;
     this.maps = maps;
+    this.completedMapsCtr = 0;
+    this.completionRate = 0;
+    this.metadata = meta;
+  }
+
+  getCompletionPercent() {
+    return this.completionRate;
+  }
+
+  computeCompleted() {
+    _.each(this.maps, (map) => {
+      if (this.metadata.mode.campaign) {
+        if (map.mapObj.campaignCtr > 0) {
+          this.completedMapsCtr++;
+        }
+      } else {
+        if (map.mapObj.doneCtr > 0) {
+          this.completedMapsCtr++;
+        }
+      }
+    });
+    this.completionRate = this.completedMapsCtr == 0 ? 0 : Math.floor(((this.completedMapsCtr / this.maps.length) * 100));
   }
 }
 
@@ -143,12 +169,28 @@ export class MapService {
     { val: 7, label: "Phone Witnessing" },
     { val: 8, label: "Reported Issue" },
   ];
+  metadata: any;
+  currentActiveMapRoot = '/assignedMaps/active/';
 
   constructor(protected db: AngularFireDatabase) {
     this.maps = [];
     this.updatePipe.debounceTime(5000).subscribe(data=>{
       this.onUpdate.emit(data);
     });
+  }
+
+  public getMetadata() {
+    if (this.metadata) {
+      return Observable.of(this.metadata);
+    } else {
+      return this.db.object(`/metadata`).flatMap(meta => {
+        this.metadata = meta;
+        if (this.metadata.mode.campaign) {
+          this.currentActiveMapRoot = '/assignedMaps/campaign/';
+        }
+        return Observable.of(this.metadata);
+      });
+    }
   }
 
   public triggerUpdate() {
@@ -175,7 +217,7 @@ export class MapService {
     })
     .filter(mapObj => mapObj != null )
     .flatMap(mapObj => {
-      return this.db.object(`/assignedMaps/active/${mapId}`).flatMap(assgnObj => {
+      return this.db.object(`${this.currentActiveMapRoot}${mapId}`).flatMap(assgnObj => {
         console.log(`Got assigned maps object...`);
         // console.log(assgnObj);
         mapBin.assgnObj = assgnObj;
@@ -454,7 +496,7 @@ export class MapService {
       // console.log(`Got map....`);
       mapBin[mapObj.$key].mapObj = mapObj;
       // console.log(mapBin[mapObj.$key]);
-      return this.db.object(`/assignedMaps/active/${mapObj.$key}`).flatMap(assgnObj => {
+      return this.db.object(`${this.currentActiveMapRoot}${mapObj.$key}`).flatMap(assgnObj => {
         mapBin[mapObj.$key].assgnObj = assgnObj;
         return Observable.of(mapObj);
       });
@@ -473,7 +515,7 @@ export class MapService {
       _.forOwn(mapBin, (val, key) => {
         let fsg = _.find(this.fsgs, (fsg)=>{return fsg.fsgName == val.fsgName });
         if (!fsg) {
-          fsg = new Fsg(val.fsgName, []);
+          fsg = new Fsg(val.fsgName, [], this.metadata);
           this.fsgs.push(fsg);
         }
         let map = _.find(fsg.maps, (map) => { return map.id == key });
@@ -504,7 +546,7 @@ export class MapService {
 
   getUserMaps(user: MapsUser): Observable<Fsg[]>  {
     const mapBin = {};
-    return this.db.object(`/users/${user.userInfoObj.$key}/maps`).flatMap(mapListObj=> {
+    return this.db.object(this.getUserMapPath(user.userInfoObj.$key)).flatMap(mapListObj=> {
       console.log(`Got user maps list...`);
       this.fsgs = [];
       if (mapListObj.$exists()) {
@@ -533,7 +575,7 @@ export class MapService {
         }
         mapBin[mapObj.$key].mapObj = mapObj;
         // console.log(mapBin[mapObj.$key]);
-        return this.db.object(`/assignedMaps/active/${mapObj.$key}`).flatMap(assgnObj => {
+        return this.db.object(`${this.currentActiveMapRoot}${mapObj.$key}`).flatMap(assgnObj => {
           mapBin[mapObj.$key].assgnObj = assgnObj;
           return Observable.of(mapObj);
         });
@@ -602,8 +644,8 @@ export class MapService {
     if (prevOwner && owner.id != prevOwner.id) {
       assgnInfo.prevOwner = prevOwner;
     }
-    updateObj[`/assignedMaps/active/${map.id}`] = assgnInfo;
-    updateObj[`/users/${owner.id}/maps/${map.id}/expiry`] = owner.expiry;
+    updateObj[`${this.currentActiveMapRoot}${map.id}`] = assgnInfo;
+    updateObj[`${this.getUserMapPath(owner.id, map.id)}/expiry`] = owner.expiry;
     this.db.database.ref().update(updateObj);
   }
 
@@ -612,27 +654,27 @@ export class MapService {
     const userListObj = {};
     _.forEach(users, user => {
       userListObj[user.id] = {name:user.name, expiry: user.expiry};
-      updateObj[`/users/${user.id}/maps/${map.id}/expiry`] = user.expiry;
+      updateObj[`${this.getUserMapPath(user.id, map.id)}/expiry`] = user.expiry;
     });
-    updateObj[`/assignedMaps/active/${map.id}/users`] = userListObj;
+    updateObj[`${this.currentActiveMapRoot}${map.id}/${this.getMapsUserUri()}`] = userListObj;
     console.log(updateObj);
     this.db.database.ref().update(updateObj);
   }
 
   removeOwner(map: Map, prevOwner: any) {
     const updateObj = {};
-    updateObj[`/assignedMaps/active/${map.id}/owner`] = null;
-    updateObj[`/assignedMaps/active/${map.id}/expiry`] = null;
-    updateObj[`/users/${prevOwner.id}/maps/${map.id}`] = null;
-    updateObj[`/assignedMaps/active/${map.id}/prevOwner`] = prevOwner;
+    updateObj[`${this.currentActiveMapRoot}${map.id}/owner`] = null;
+    updateObj[`${this.currentActiveMapRoot}${map.id}/expiry`] = null;
+    updateObj[`${this.getUserMapPath(prevOwner.id, map.id)}`] = null;
+    updateObj[`${this.currentActiveMapRoot}${map.id}/prevOwner`] = prevOwner;
     this.db.database.ref().update(updateObj);
   }
 
   removeUsers(map: Map, users: any) {
     const updateObj = {};
     _.forEach(users, user => {
-      updateObj[`/users/${user.id}/maps/${map.id}`] = null;
-      updateObj[`/assignedMaps/active/${map.id}/users/${user.id}`] = null;
+      updateObj[`${this.getUserMapPath(user.id, map.id)}`] = null;
+      updateObj[`${this.currentActiveMapRoot}${map.id}/${this.getMapsUserUri()}/${user.id}`] = null;
     });
     this.db.database.ref().update(updateObj);
   }
@@ -640,15 +682,15 @@ export class MapService {
   updateAddrStat(mapId, addId, status, user, cb=null) {
     const updateObj: any = {};
     const nhData: any = {};
-    updateObj[`/assignedMaps/active/${mapId}/address/${addId}`] = status;
+    updateObj[`${this.currentActiveMapRoot}${mapId}/address/${addId}`] = status;
     if (status == 3 || status == 4) {
       // not at home 1 or 2
       nhData.nh_when = moment().toDate();
       nhData.nh_by = user.userInfoObj.name;
-      updateObj[`/assignedMaps/active/${mapId}/det/${addId}/nh_when`] = nhData.nh_when;
-      updateObj[`/assignedMaps/active/${mapId}/det/${addId}/nh_by`] = nhData.nh_by;
+      updateObj[`${this.currentActiveMapRoot}${mapId}/det/${addId}/nh_when`] = nhData.nh_when;
+      updateObj[`${this.currentActiveMapRoot}${mapId}/det/${addId}/nh_by`] = nhData.nh_by;
     }
-    updateObj[`/assignedMaps/active/${mapId}/lastSaved`] = {id: user.userObj.uid, name: user.userInfoObj.name, when: moment().toDate() };
+    updateObj[`${this.currentActiveMapRoot}${mapId}/lastSaved`] = {id: user.userObj.uid, name: user.userInfoObj.name, when: moment().toDate() };
     this.db.database.ref().update(updateObj).then(()=> {
       if (cb) cb(addId, status, nhData);
     });
@@ -667,7 +709,7 @@ export class MapService {
     if (map.mapObj.addresses && map.assgnObj && !_.isUndefined(map.assgnObj.address)) {
       _.forOwn(map.mapObj.addresses, (addId, key) => {
         if (!_.isUndefined(map.assgnObj.address[addId])) {
-          const status = map.assgnObj.address[addId];
+          const status = _.toNumber(map.assgnObj.address[addId]);
           switch (status) {
             case 1:
             case 2:
@@ -687,6 +729,39 @@ export class MapService {
 
   getRemainingAddresses(map: Map) {
     return map.addressCount - this.getVisitedAddresses(map);
+  }
+
+  getUserMapPath(userId, mapId:any = null) {
+    if (this.metadata.mode.campaign) {
+      return `/users/${userId}/campaign${_.isNull(mapId) ? '' : `/${mapId}`}`;
+    } else {
+      return `/users/${userId}/maps${_.isNull(mapId) ? '' : `/${mapId}`}`;
+    }
+  }
+
+  getMapsUserUri() {
+    if (this.metadata.mode.campaign) {
+      return `campaign`;
+    } else {
+      return `users`;
+    }
+  }
+
+  isNormalMode() {
+    return !this.metadata.mode.campaign;
+  }
+
+  findByTerm(path: string, term:any, param:any, isExactSearch:boolean) {
+    // const ref = this.db.database.ref(path);
+    // var searchRes = [];
+    // const queryObservable = this
+    //
+    // // subscribe to changes
+    // queryObservable.subscribe(queriedItems => {
+    //   console.log(queriedItems);
+    // });
+    //
+    // return qSubject.next(param);
   }
 
 }

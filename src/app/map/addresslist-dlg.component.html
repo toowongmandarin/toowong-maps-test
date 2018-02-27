@@ -1,6 +1,6 @@
-<div md-dialog-content>
-  <md-card>
-    <md-card-content>
+<div mat-dialog-content>
+  <mat-card>
+    <mat-card-content>
       <span><h3>{{ data.consumer.title }} </h3></span>
       <table width="100%">
         <tr>
@@ -12,9 +12,9 @@
           <td width="20%" [style.background-color]="data.consumer.getStatusBgColor(addObj)">{{ data.consumer.getStatusLabel(addObj) }}</td>
         </tr>
       </table>
-    </md-card-content>
-    <md-card-actions>
-      <button md-fab (click)="data.consumer.closeAddrListDlg()"><md-icon>cancel</md-icon></button>
-    </md-card-actions>
-  </md-card>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-fab (click)="data.consumer.closeAddrListDlg()"><mat-icon>cancel</mat-icon></button>
+    </mat-card-actions>
+  </mat-card>
 </div>

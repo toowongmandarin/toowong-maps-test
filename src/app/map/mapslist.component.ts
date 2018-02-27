@@ -2,12 +2,12 @@ import { Component, Input, ViewChild, EventEmitter } from '@angular/core';
 import { MapService, Fsg, Map } from './map.service';
 import { Observable } from 'rxjs/Rx';
 import { environment } from '../../environments/environment';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { LoadingDialog } from './loading-diag.component';
 import { BaseComponent } from '../base/base.component';
 import { AuthService, MapsUser } from '../user/user.component';
 import { WindowRef } from './windowref.service';
-
+import moment from 'moment-es6';
 import * as _ from 'lodash';
 
 @Component({
@@ -21,8 +21,9 @@ export class MapsListComponent extends BaseComponent {
   loaded: boolean = false;
   hasMaps: boolean = false;
   oldFsgMaps: Fsg[];
+  metadata: any;
 
-  constructor(dialog: MdDialog, fireAuth: AuthService, public mapService: MapService, public winRef: WindowRef) {
+  constructor(dialog: MatDialog, fireAuth: AuthService, public mapService: MapService, public winRef: WindowRef) {
     super();
     this.dialog = dialog;
     this.fireAuth = fireAuth;
@@ -31,18 +32,31 @@ export class MapsListComponent extends BaseComponent {
 
   public load() {
     this.showLoadingDialog();
-    if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
-      // load all if an admin...
-      console.log(`Loading current maps...`);
-      this.getAllMapsList();
-    } else {
-      // load all assigned maps...
-      this.getAllUserMaps();
-    }
-    // pre-load the user list...
-    this.subs.push(this.fireAuth.getAllUsersList().subscribe(userList => {
-      console.log(`User list pre-loaded..`);
-    }));
+    this.mapService.getMetadata().subscribe(meta => {
+      this.metadata = meta;
+      if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
+        // load all if an admin...
+        console.log(`Loading current maps...`);
+        this.getAllMapsList();
+      } else {
+        // load all assigned maps...
+        if (this.fireAuth.currentUser.isFsgAssistant()) {
+          this.getFsgMaps();
+        } else {
+          this.getAllUserMaps();
+        }
+      }
+      // pre-load the user list...
+      this.subs.push(this.fireAuth.getAllUsersList().subscribe(userList => {
+        console.log(`User list pre-loaded..`);
+      }));
+    });
+  }
+
+  protected getFsgMaps() {
+    _.forOwn(this.fireAuth.currentUser.roles.fsg, (flag, fsgName) => {
+
+    });
   }
 
   protected getAllUserMaps() {
@@ -80,15 +94,22 @@ export class MapsListComponent extends BaseComponent {
     }));
   }
 
+  getFsgName(fsg) {
+    return fsg.fsgName != 'Your Maps' ? `${fsg.fsgName} - ${fsg.getCompletionPercent() }%` : fsg.fsgName;
+  }
+
   protected getAllMapsList() {
     // maps listing depend on roles...
     console.log(`Getting all maps...`);
     this.hasMaps = true;
     if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
       this.subs.push(this.mapService.getAllFsgMapsList(true).flatMap(fsgMaps => {
+        _.each(fsgMaps, (fsg) => {
+          fsg.computeCompleted();
+        });
         this.fsgMaps = fsgMaps;
-        // console.log("All maps:")
-        // console.log(fsgMaps);
+        console.log("All maps:")
+        console.log(fsgMaps);
         return this.mapService.getUserMaps(this.fireAuth.currentUser);
       })
       .subscribe(userMaps => {
@@ -154,6 +175,35 @@ export class MapsListComponent extends BaseComponent {
 
   isUpdater() {
     return this.fireAuth.currentUser &&  ( this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
+  }
+
+  getBg(expireDate, isNormalMode) {
+    const today = moment();
+    const expireMoment = moment(expireDate);
+    const criticalMoment = moment().add(3, 'days');
+    const soonMoment = moment().add(6, 'days');
+    if (today.isSameOrAfter(expireMoment) || today.isBetween(criticalMoment, expireMoment, null, '[]')) {
+      return "pink";
+    }
+    if (today.isBetween(soonMoment, expireMoment, null, '[]')) {
+      return "yellow";
+    }
+    return "lightgray";
+  }
+
+  getBgMap(map) {
+    let doneCtr = map.mapObj.doneCtr;
+    if (!this.isNormalMode()) {
+      doneCtr = map.mapObj.campaignCtr;
+    }
+    if (doneCtr > 0) {
+      return "lightgray";
+    }
+    return "white";
+  }
+
+  isNormalMode() {
+    return this.mapService.isNormalMode();
   }
 
 }

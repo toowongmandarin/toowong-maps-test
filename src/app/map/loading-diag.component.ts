@@ -1,10 +1,10 @@
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { Component } from '@angular/core';
 
 @Component({
  selector: 'loading-dialog',
  template: `
-            <div md-dialog-content>
+            <div mat-dialog-content>
               <div class="flex-container"
                fxLayout="column"
                fxLayout.xs="column"
@@ -16,5 +16,5 @@ import { Component } from '@angular/core';
             `
 })
 export class LoadingDialog {
- constructor(public dialogRef: MdDialogRef<any>) {}
+ constructor(public dialogRef: MatDialogRef<any>) {}
 }

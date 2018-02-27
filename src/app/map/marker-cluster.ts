@@ -28,6 +28,7 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
   @Input() markerIcons: any[] = [];
   bounds: any;
   locationMarker: any;
+  hasLoaded: boolean = false;
 
   @Input() style:any = {
     url: '/assets/images/place-markers/cluster.png',
@@ -170,8 +171,12 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
           }
           this.options.minimumClusterSize = this.minimumClusterSize;
           this.markerCluster = new MarkerClusterer(map, this.markers, this.options);
-          map.setCenter(this.bounds.getCenter());
-          map.fitBounds(this.bounds);
+          // check if we've loaded already, ignore if already loaded...
+          if (!this.hasLoaded) {
+            this.hasLoaded = true;
+            map.setCenter(this.bounds.getCenter());
+            map.fitBounds(this.bounds);
+          }
         });
     });
   }

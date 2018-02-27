@@ -1,7 +1,7 @@
 import { Component, Input, ViewChild, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 import { environment } from '../../environments/environment';
-import { MdDialog, MdDialogRef } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
 import { LoadingDialog } from '../map/loading-diag.component';
 import * as _ from 'lodash';
 import { AuthService, MapsUser } from '../user/user.component';
@@ -10,9 +10,9 @@ import { LoginComponent } from '../ui/login.component';
 export class BaseComponent implements OnInit, OnDestroy {
   protected loadingDialog: any;
   protected subs: any[] = [];
-  protected dialog: MdDialog;
+  protected dialog: MatDialog;
   protected fireAuth: AuthService;
-  protected loginDiag: MdDialogRef<any>;
+  protected loginDiag: MatDialogRef<any>;
   public errorMsg: string;
 
   constructor() {

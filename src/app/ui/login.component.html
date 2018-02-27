@@ -1,4 +1,4 @@
-<div md-dialog-content>
+<div mat-dialog-content>
   <form name='loginFrm' (submit)='login($event)'>
     <div class="flex-container"
        fxLayout="column"
@@ -7,20 +7,20 @@
        fxLayoutAlign.xs="start">
        <div>
         <div>
-          <md-input-container>
+          <mat-form-field>
             <label>Email</label>
-            <input mdInput type='email' name="email" [(ngModel)]="email" >
-          </md-input-container>
+            <input matInput type='email' name="email" [(ngModel)]="email" >
+          </mat-form-field>
         </div>
         <div>
-          <md-input-container>
+          <mat-form-field>
             <label>Password</label>
-            <input mdInput type='password' name="password" [(ngModel)]="password" >
-          </md-input-container>
+            <input matInput type='password' name="password" [(ngModel)]="password" >
+          </mat-form-field>
         </div>
-        <md-dialog-actions>
-          <button md-button md-raised-button type='submit' [disabled]="isPending || isMaint" >Login</button>
-        </md-dialog-actions>
+        <mat-dialog-actions>
+          <button mat-button mat-raised-button type='submit' [disabled]="isPending || isMaint" >Login</button>
+        </mat-dialog-actions>
         <div>
           {{data.consumer.errorMsg}}
         </div>

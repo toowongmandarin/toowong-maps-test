@@ -2,40 +2,40 @@
 <td-message *ngIf="!hasMaps" label="Info" sublabel="You have no maps, please contact the maps team if you are expecting maps." color="accent" icon="info"></td-message>
 <td-expansion-panel *ngFor="let fsg of fsgMaps" [expand]="fsg.expanded" (expanded)="toggleExpand(fsg, true)" (collapsed)="toggleExpand(fsg, false)">
   <ng-template td-expansion-panel-header>
-    <md-toolbar [ngClass]="'bgc-blue-grey-600 whiteText marginTopBottom-2'">
-      <span><h2>{{fsg.fsgName}}</h2> </span>
+    <mat-toolbar [ngClass]="'bgc-blue-grey-600 whiteText marginTopBottom-2'">
+      <span><h2>{{ getFsgName(fsg) }}</h2> </span>
       <span class="fill-remaining-space"></span>
-      <span><md-icon *ngIf="!fsg.expanded">keyboard_arrow_down</md-icon><md-icon *ngIf="fsg.expanded">keyboard_arrow_up</md-icon></span>
-    </md-toolbar>
+      <span><mat-icon *ngIf="!fsg.expanded">keyboard_arrow_down</mat-icon><mat-icon *ngIf="fsg.expanded">keyboard_arrow_up</mat-icon></span>
+    </mat-toolbar>
   </ng-template>
-  <md-card class='mapCard' *ngFor="let map of fsg.maps">
-    <md-card-header>
-      <md-card-title>
+  <mat-card class='mapCard' *ngFor="let map of fsg.maps" [style.background-color]="getBgMap(map)">
+    <mat-card-header>
+      <mat-card-title>
         <h3>
-          {{map.mapObj.terId}} - {{map.mapObj.name}}
+          {{map.mapObj.terId}} - {{map.mapObj.name}} {{ isNormalMode() ? '' : '::: Campaign'}}
         </h3>
-      </md-card-title>
-    </md-card-header>
-    <md-card-content>
-      <md-progress-bar class="marginBottom-10" *ngIf="map.assgnObj && map.assgnObj.started" [value]="getCompletionPercentage(map)" [color]="primary"></md-progress-bar>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-progress-bar class="marginBottom-10" *ngIf="map.assgnObj && map.assgnObj.started" [value]="getCompletionPercentage(map)" [color]="primary"></mat-progress-bar>
       <div>
-        <md-chip-list selectable="false">
-          <md-chip *ngIf="map.assgnObj && map.assgnObj.started">Remaining: {{ getRemaining(map) }}</md-chip>
-          <md-chip>Addresses: {{map.addressCount}}</md-chip>
-          <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used on: {{ map.assgnObj.lastSaved.when  | date:'dd MMM y' }} </md-chip>
-          <md-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used by: {{ map.assgnObj.lastSaved.name }}</md-chip>
-          <md-chip *ngIf="map.hasOwner()">Owner: {{ map.getOwner().name}} </md-chip>
-          <md-chip *ngIf="map.hasUsers()">Users: {{ getMapUsers(map) }}</md-chip>
-          <md-chip *ngIf="map.assgnObj && map.assgnObj.started">Started: {{ map.assgnObj.started | date:'dd MMM y'}}</md-chip>
-          <md-chip *ngIf="map.assgnObj && map.assgnObj.expiry">Expiry: {{ map.assgnObj.expiry | date:'dd MMM y'}}</md-chip>
-          <md-chip *ngIf="map.mapObj.lastCompleted && isUpdater()">Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</md-chip>
-          <md-chip *ngIf="map.assgnObj.prevOwner && isUpdater()" >Last Owner: {{ map.assgnObj.prevOwner.name }}</md-chip>
-        </md-chip-list>
+        <mat-chip-list selectable="false">
+          <mat-chip *ngIf="map.assgnObj && map.assgnObj.started">Remaining: {{ getRemaining(map) }}</mat-chip>
+          <mat-chip>Addresses: {{map.addressCount}}</mat-chip>
+          <mat-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used on: {{ map.assgnObj.lastSaved.when  | date:'dd MMM y' }} </mat-chip>
+          <mat-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used by: {{ map.assgnObj.lastSaved.name }}</mat-chip>
+          <mat-chip *ngIf="map.hasOwner()">Owner: {{ map.getOwner().name}} </mat-chip>
+          <mat-chip *ngIf="map.hasUsers()">Users: {{ getMapUsers(map) }}</mat-chip>
+          <mat-chip *ngIf="map.assgnObj && map.assgnObj.started">Started: {{ map.assgnObj.started | date:'dd MMM y'}}</mat-chip>
+          <mat-chip *ngIf="map.assgnObj && map.assgnObj.expiry" [style.background-color]="getBg(map.assgnObj.expiry)" >Expiry: {{ map.assgnObj.expiry | date:'dd MMM y'}}</mat-chip>
+          <mat-chip *ngIf="map.mapObj.lastCompleted && isUpdater() && isNormalMode()">Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</mat-chip>
+          <mat-chip *ngIf="map.assgnObj.prevOwner && isUpdater()" >Last Owner: {{ map.assgnObj.prevOwner.name }}</mat-chip>
+        </mat-chip-list>
       </div>
-    </md-card-content>
-    <md-card-actions>
-      <a *ngIf="canOpenMap(map)" md-mini-fab [routerLink]="['/map', map.id]"><md-icon>map</md-icon></a>
-      <mapshare *ngIf="canOpenMap(map)" [map]="map"></mapshare>
-    </md-card-actions>
-  </md-card>
+    </mat-card-content>
+    <mat-card-actions>
+      <a *ngIf="canOpenMap(map)" mat-mini-fab [routerLink]="['/map', map.id]"><mat-icon>map</mat-icon></a>
+      <mapshare *ngIf="canOpenMap(map)" [map]="map" [campaignMode]="!isNormalMode()"></mapshare>
+    </mat-card-actions>
+  </mat-card>
 </td-expansion-panel>

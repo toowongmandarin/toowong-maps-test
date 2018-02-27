@@ -8,7 +8,7 @@ import { MapService } from './map.service';
 import { AngularFireDatabaseModule } from 'angularfire2/database';
 import { LoadingDialog } from './loading-diag.component';
 import { MarkerClusterDirective } from './marker-cluster';
-import { MdMenuModule, MdProgressBarModule, MdRadioModule, MdInputModule, MdAutocompleteModule, MdDialogModule, MdListModule, MdSlideToggleModule, MdCardModule, MdChipsModule, MdButtonModule, MdToolbarModule, MdIconModule, MdButtonToggleModule, MdSelectModule } from '@angular/material';
+import { MatTabsModule, MatMenuModule, MatProgressBarModule, MatRadioModule, MatInputModule, MatAutocompleteModule, MatDialogModule, MatListModule, MatSlideToggleModule, MatCardModule, MatChipsModule, MatButtonModule, MatToolbarModule, MatIconModule, MatButtonToggleModule, MatSelectModule } from '@angular/material';
 import { CovalentExpansionPanelModule, CovalentMessageModule } from '@covalent/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthModule } from '../user/user.module';
@@ -17,6 +17,8 @@ import { MapShareComponent, MapShareDlgComponent, MapReturnConfirmDlgComponent }
 import { TagInputModule } from 'ngx-chips';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpModule } from '@angular/http';
+import { MapAdminComponent } from './map-admin.component';
+import { MapSearchComponent } from './map-search.component'
 @NgModule({
   imports:      [
     CommonModule,
@@ -25,30 +27,31 @@ import { HttpModule } from '@angular/http';
     TagInputModule,
     AgmCoreModule.forRoot({apiKey:'AIzaSyB6EVRDfSAHTAkrx-VmXyKU7Y3qLSuD0Ag'}),
     AngularFireDatabaseModule,
-    MdDialogModule,
-    MdSlideToggleModule,
-    MdListModule,
-    MdCardModule,
-    MdChipsModule,
-    MdButtonModule,
-    MdToolbarModule,
-    MdButtonToggleModule,
-    MdIconModule,
-    MdSelectModule,
-    MdAutocompleteModule,
-    MdInputModule,
-    MdRadioModule,
-    MdProgressBarModule,
-    MdMenuModule,
+    MatDialogModule,
+    MatSlideToggleModule,
+    MatListModule,
+    MatCardModule,
+    MatChipsModule,
+    MatButtonModule,
+    MatToolbarModule,
+    MatButtonToggleModule,
+    MatIconModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatInputModule,
+    MatRadioModule,
+    MatProgressBarModule,
+    MatMenuModule,
     HttpModule,
     RouterModule,
     CovalentExpansionPanelModule,
     CovalentMessageModule,
-    AuthModule
+    AuthModule,
+    MatTabsModule
    ],
-  declarations: [ MapComponent, MapsListComponent, MarkerClusterDirective, LoadingDialog, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent ],
-  exports:      [ MapComponent, MapsListComponent, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent, MarkerClusterDirective ],
+  declarations: [ MapComponent, MapsListComponent, MarkerClusterDirective, LoadingDialog, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent, MapAdminComponent, MapSearchComponent ],
+  exports:      [ MapComponent, MapsListComponent, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent, MarkerClusterDirective, MapAdminComponent, MapSearchComponent ],
   providers:    [ MapService, WindowRef ],
-  entryComponents: [ LoadingDialog, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent ]
+  entryComponents: [ LoadingDialog, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent, MapAdminComponent, MapSearchComponent ]
 })
 export class MapModule { }

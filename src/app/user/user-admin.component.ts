@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { AuthService } from './user.component';
 import { BaseComponent } from '../base/base.component';
 import * as _ from 'lodash';
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
 @Component({
   selector: 'user-admin',
@@ -20,7 +20,7 @@ export class UserAdminComponent extends BaseComponent {
   placeHolderTxt: string;
   newUser: any;
 
-  constructor(public fireAuth: AuthService, protected dialog: MdDialog) {
+  constructor(public fireAuth: AuthService, protected dialog: MatDialog) {
     super();
 
   }
@@ -117,7 +117,7 @@ export class UserAdminComponent extends BaseComponent {
 })
 export class SelectUserDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any) {
 
   }
 
@@ -129,7 +129,7 @@ export class SelectUserDlgComponent {
 })
 export class CreateUserDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any) {
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any) {
 
   }
 

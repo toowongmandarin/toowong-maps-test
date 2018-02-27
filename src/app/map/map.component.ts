@@ -2,7 +2,7 @@ import { Component, Input, ViewChild, EventEmitter, Inject} from '@angular/core'
 import { MapService } from './map.service';
 import { Observable } from 'rxjs/Rx';
 import { environment } from '../../environments/environment';
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA, MdIconRegistry } from '@angular/material';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatIconRegistry } from '@angular/material';
 import { LoadingDialog } from './loading-diag.component';
 import * as _ from 'lodash';
 import { ActivatedRoute } from '@angular/router';
@@ -53,8 +53,8 @@ export class MapComponent extends BaseComponent {
   shortenTitleWidth:number = 1024;
   triggerUpdate: boolean = false;
 
-  addrDlg: MdDialogRef<any>;
-  addrListDlg: MdDialogRef<any>;
+  addrDlg: MatDialogRef<any>;
+  addrListDlg: MatDialogRef<any>;
 
   currentAddr: any;
   currentAddrTitle: string;
@@ -71,7 +71,7 @@ export class MapComponent extends BaseComponent {
   addUrl: string;
   notifyDlg: any;
 
-  constructor(public mapService: MapService, dialog: MdDialog, fireAuth: AuthService, private route: ActivatedRoute, public winRef: WindowRef, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+  constructor(public mapService: MapService, dialog: MatDialog, fireAuth: AuthService, private route: ActivatedRoute, public winRef: WindowRef, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     super();
     this.dialog = dialog;
     this.fireAuth = fireAuth;
@@ -90,7 +90,9 @@ export class MapComponent extends BaseComponent {
     this.title = 'Loading...';
     this.subs.push(this.route.params.subscribe(params => {
       this.mapId = params['id'];
-      this.loadMaps();
+      this.mapService.getMetadata().subscribe(meta => {
+        this.loadMaps();
+      });
     }));
   }
 
@@ -181,9 +183,9 @@ export class MapComponent extends BaseComponent {
               // TODO: decide what the title
             }
           } else {
-            this.title = `${this.mapService.maps[0].terId} - ${this.mapService.maps[0].name}`;
+            this.title = `${this.mapService.maps[0].terId} - ${this.mapService.maps[0].name} ${this.mapService.isNormalMode() ? '' : '::Campaign'}`;
             if (this.winRef.nativeWindow.innerWidth <= this.shortenTitleWidth) {
-              this.title = `Map ${this.mapService.maps[0].terId}`;
+              this.title = `Map ${this.mapService.maps[0].terId}${this.mapService.isNormalMode() ? '' : '::Campaign'}`;
             }
           }
           this.subs.push(this.onAddressClick.subscribe(data => {
@@ -213,6 +215,16 @@ export class MapComponent extends BaseComponent {
         return;
       }
       this.mapStarted = map.assgnObj.$exists() && !_.isEmpty(map.assgnObj.started);
+      // sort the addresses
+      map.addresses = _.sortBy(map.addresses,
+      [(addr) => {
+        return (_.isUndefined(addr.lSt) || _.isNull(addr.lSt) ?  addr.st.toLowerCase() : addr.lSt  );
+      }, (addr) => {
+        return _.toSafeInteger(addr.hnum);
+      }, (addr) => {
+        return !addr.unit || addr.unit == -9 ? 0 : _.toSafeInteger(addr.unit);
+      }]);
+
       this.currentMap = map;
 
       this.mapService.createMarkersWithStatus(map);
@@ -225,9 +237,9 @@ export class MapComponent extends BaseComponent {
         this.mapService.triggerUpdate();
       }
 
-      this.title = `${this.mapService.maps[0].terId} - ${this.mapService.maps[0].name}`;
+      this.title = `${this.mapService.maps[0].terId} - ${this.mapService.maps[0].name} ${this.mapService.isNormalMode() ? '' : '::Campaign'}`;
       if (this.winRef.nativeWindow.innerWidth <= this.shortenTitleWidth) {
-        this.title = `Map ${this.mapService.maps[0].terId}`;
+        this.title = `Map ${this.mapService.maps[0].terId} ${this.mapService.isNormalMode() ? '' : '::Campaign'}`;
       }
       const fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
       const terId = this.mapService.maps[0].terId;
@@ -294,14 +306,33 @@ export class MapComponent extends BaseComponent {
   getStatuses() {
     if (!this.addrStatuses) {
       if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
-        this.addrStatuses = this.mapService.addrStatuses;
+        if (this.mapService.isNormalMode()) {
+          this.addrStatuses = this.mapService.addrStatuses;
+        } else {
+          this.addrStatuses = [];
+          // when on campaign mode remove the not-at-home-2 status
+          _.forEach(this.mapService.addrStatuses, stat => {
+            if (stat.val != 4) {
+              this.addrStatuses.push(stat);
+            }
+          });
+        }
       } else {
         this.addrStatuses = [];
+        if (this.mapService.isNormalMode()) {
+          _.forEach(this.mapService.addrStatuses, stat => {
+           if (stat.val != 5 && stat.val != 7) {
+             this.addrStatuses.push(stat);
+           }
+         });
+       } else {
+         // when on campaign mode remove the not-at-home-2 status
          _.forEach(this.mapService.addrStatuses, stat => {
-          if (stat.val != 5 && stat.val != 7) {
+          if (stat.val != 3 && stat.val != 4 && stat.val != 5 && stat.val != 7) {
             this.addrStatuses.push(stat);
           }
         });
+       }
       }
     }
   }
@@ -490,7 +521,7 @@ export class MapComponent extends BaseComponent {
 })
 export class AddressDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon('google-map',
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/google-maps.svg'));
     iconRegistry.addSvgIcon('edit-address',
@@ -504,6 +535,6 @@ export class AddressDlgComponent {
 })
 export class AddressListDlgComponent {
 
-  constructor(public dialogRef: MdDialogRef<any>, @Inject(MD_DIALOG_DATA) public data: any, iconRegistry: MdIconRegistry, sanitizer: DomSanitizer) {
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
   }
 }

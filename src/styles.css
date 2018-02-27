@@ -47,3 +47,12 @@ table, th, td {
     border: 1px solid black;
     border-collapse: collapse;
 }
+
+.radio-group {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.radio-button {
+  margin: 5px;
+}
