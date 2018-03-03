@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   app: {
-    title: "Macgregor Ministry Maps 2.7",
+    title: "Macgregor Ministry Maps 2.7.1",
     mapBase: 'https://macgregor.jwapp.xyz/#'
   },
   firebase: {

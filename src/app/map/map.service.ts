@@ -656,7 +656,7 @@ export class MapService {
       userListObj[user.id] = {name:user.name, expiry: user.expiry};
       updateObj[`${this.getUserMapPath(user.id, map.id)}/expiry`] = user.expiry;
     });
-    updateObj[`${this.currentActiveMapRoot}${map.id}/${this.getMapsUserUri()}`] = userListObj;
+    updateObj[`${this.currentActiveMapRoot}${map.id}/users`] = userListObj;
     console.log(updateObj);
     this.db.database.ref().update(updateObj);
   }
@@ -674,7 +674,7 @@ export class MapService {
     const updateObj = {};
     _.forEach(users, user => {
       updateObj[`${this.getUserMapPath(user.id, map.id)}`] = null;
-      updateObj[`${this.currentActiveMapRoot}${map.id}/${this.getMapsUserUri()}/${user.id}`] = null;
+      updateObj[`${this.currentActiveMapRoot}${map.id}/users/${user.id}`] = null;
     });
     this.db.database.ref().update(updateObj);
   }
@@ -741,7 +741,7 @@ export class MapService {
 
   getMapsUserUri() {
     if (this.metadata.mode.campaign) {
-      return `campaign`;
+      return `campaignUsers`;
     } else {
       return `users`;
     }

@@ -6,8 +6,8 @@
 export const environment = {
   production: false,
   app: {
-    title: "Macgregor Ministry Maps 2.7",
-    mapBase: 'http://localhost:4200/#'
+    title: "Macgregor Ministry Maps 2.7.1",
+    mapBase: 'http://localhost:4200/'
   },
   firebase: {
     apiKey: "AIzaSyAbLH6E8owqokr3eefpUypyMzPW0E9cBbo",
