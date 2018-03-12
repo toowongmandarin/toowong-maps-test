@@ -25,6 +25,7 @@ export class BaseComponent implements OnInit, OnDestroy {
   hideLoadingDialog() {
     if (this.loadingDialog) {
       this.loadingDialog.close();
+      this.loadingDialog = null;
     }
   }
 

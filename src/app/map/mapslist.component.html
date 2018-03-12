@@ -39,3 +39,15 @@
     </mat-card-actions>
   </mat-card>
 </td-expansion-panel>
+<mat-card *ngIf="metadata">
+  <mat-card-header>
+    <mat-card-title>
+      <h3>
+        Progress Report
+      </h3>
+    </mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <h4>Current overall territory coverage: {{ getOverallCompletion() }}% </h4>
+  </mat-card-content>
+</mat-card>

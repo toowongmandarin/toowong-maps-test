@@ -11,10 +11,28 @@
     <mat-icon>person_add</mat-icon>
     <span>Add User</span>
   </button>
+  <button mat-menu-item (click)="showVersionDlg()">
+    <mat-icon>info_outline</mat-icon>
+    <span>Release Notes</span>
+  </button>
   <button mat-menu-item (click)="logout()">
     <mat-icon>exit_to_app</mat-icon>
     <span>Logout</span>
   </button>
 </mat-menu>
 </span>
-<span *ngIf="!isUpdater()" style="margin-left: 5px;"><button mat-mini-fab (click)="logout()" ><mat-icon>exit_to_app</mat-icon></button></span>
+<span *ngIf="!isUpdater()" style="margin-left: 5px;">
+  <button mat-icon-button [matMenuTriggerFor]="menu" >
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu" >
+    <button mat-menu-item (click)="showVersionDlg()">
+      <mat-icon>info_outline</mat-icon>
+      <span>Release Notes</span>
+    </button>
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>exit_to_app</mat-icon>
+      <span>Logout</span>
+    </button>
+  </mat-menu>
+</span>

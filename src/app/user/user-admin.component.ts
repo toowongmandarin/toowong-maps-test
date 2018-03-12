@@ -3,6 +3,8 @@ import { AuthService } from './user.component';
 import { BaseComponent } from '../base/base.component';
 import * as _ from 'lodash';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
+import {MatListModule} from '@angular/material/list';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'user-admin',
@@ -73,6 +75,23 @@ export class UserAdminComponent extends BaseComponent {
     }
   }
 
+  showVersionDlg() {
+    if (!this.currentDlg) {
+      this.currentDlg = this.dialog.open(VersionDlgComponent, {
+        data: {consumer: this},
+        disableClose: true
+      });
+    }
+  }
+
+  getVersions() {
+    const versions = [];
+    _.each(environment.version.list, (versionNum) => {
+      versions.push({versionNum:versionNum, text: environment.version.details[versionNum]});
+    });
+    return versions;
+  }
+
   closeDlg() {
     this.dialog.closeAll();
     this.currentDlg = null;
@@ -128,6 +147,18 @@ export class SelectUserDlgComponent {
   templateUrl: './user-admin-createuser.html'
 })
 export class CreateUserDlgComponent {
+
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any) {
+
+  }
+
+}
+
+@Component({
+  selector: 'version-dlg',
+  templateUrl: './version-info.html'
+})
+export class VersionDlgComponent {
 
   constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any) {
 

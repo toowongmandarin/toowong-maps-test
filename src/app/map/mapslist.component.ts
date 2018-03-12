@@ -53,6 +53,14 @@ export class MapsListComponent extends BaseComponent {
     });
   }
 
+  public getOverallCompletion() {
+    if (this.metadata.mode.campaign) {
+      return this.metadata.report.campaign.currentCompletion;
+    } else {
+      return this.metadata.report.regular.currentCompletion;
+    }
+  }
+
   protected getFsgMaps() {
     _.forOwn(this.fireAuth.currentUser.roles.fsg, (flag, fsgName) => {
 
