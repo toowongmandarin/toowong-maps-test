@@ -46,6 +46,7 @@ export class MapsListComponent extends BaseComponent {
           this.getAllUserMaps();
         }
       }
+      this.loadPreferences();
       // pre-load the user list...
       this.subs.push(this.fireAuth.getAllUsersList().subscribe(userList => {
         console.log(`User list pre-loaded..`);
@@ -58,6 +59,22 @@ export class MapsListComponent extends BaseComponent {
       return this.metadata.report.campaign.currentCompletion;
     } else {
       return this.metadata.report.regular.currentCompletion;
+    }
+  }
+
+  public getMapCount() {
+    if (this.metadata.mode.campaign) {
+      return this.metadata.report.campaign.mapCount;
+    } else {
+      return this.metadata.report.regular.mapCount;
+    }
+  }
+
+  public getCompletionReport() {
+    if (this.metadata.mode.campaign) {
+      return this.metadata.report.campaign;
+    } else {
+      return this.metadata.report.regular;
     }
   }
 
@@ -80,24 +97,43 @@ export class MapsListComponent extends BaseComponent {
         if (fsg.maps.length == 0 && fsgMaps.length > 0) {
           fsgMaps.splice(idx, 1);
         }
+        if (this.fsgMaps) {
+          const fsgMatch = _.find(this.fsgMaps, fsgM => {
+            return fsg.fsgName == fsgM.fsgName;
+          });
+          if (fsgMatch) {
+            console.log(`Match found:::`);
+            console.log(fsgMatch);
+            console.log(fsg);
+            fsgMatch.metadata = fsg.metadata;
+            fsgMatch.maps = fsg.maps;
+            fsgMatch.completedMapsCtr = fsg.completedMapsCtr;
+            fsgMatch.completionRate = fsg.completionRate;
+          }
+        }
+
       });
       this.hasMaps = fsgMaps && fsgMaps.length > 0;
-      if (!this.hasMaps) {
-        this.oldFsgMaps = [];
-        this.fsgMaps = [];
+
+      // if (!this.hasMaps) {
+      //   this.oldFsgMaps = [];
+      //   this.fsgMaps = [];
+      // }
+      // if (this.oldFsgMaps) {
+      //   _.forEach(this.oldFsgMaps, (fsgMap) => {
+      //     const currentFsg = _.find(this.fsgMaps, (curFsg) => {
+      //       return curFsg.fsgName == fsgMap.fsgName
+      //     });
+      //     if (currentFsg) {
+      //       currentFsg.expanded = fsgMap.expanded;
+      //     }
+      //   });
+      // }
+      // this.oldFsgMaps = this.fsgMaps;
+      if (!this.fsgMaps) {
+        this.fsgMaps = fsgMaps;
       }
-      if (this.oldFsgMaps) {
-        _.forEach(this.oldFsgMaps, (fsgMap) => {
-          const currentFsg = _.find(this.fsgMaps, (curFsg) => {
-            return curFsg.fsgName == fsgMap.fsgName
-          });
-          if (currentFsg) {
-            currentFsg.expanded = fsgMap.expanded;
-          }
-        });
-      }
-      this.oldFsgMaps = this.fsgMaps;
-      this.fsgMaps = fsgMaps;
+
       this.hideLoadingDialog();
     }));
   }
@@ -134,21 +170,21 @@ export class MapsListComponent extends BaseComponent {
           }
         }
 
-        if (this.oldFsgMaps) {
-          // record the last diag open...
-          _.forEach(this.oldFsgMaps, (fsgMap) => {
-            // console.log(`Old:`);
-            // console.log(fsgMap);
-            const currentFsg = _.find(this.fsgMaps, (curFsg) => {
-              return curFsg.fsgName == fsgMap.fsgName
-            });
-            if (currentFsg) {
-              // console.log(`Set expanded state.`);
-              currentFsg.expanded = fsgMap.expanded;
-            }
-          });
-        }
-        this.oldFsgMaps = this.fsgMaps;
+        // if (this.oldFsgMaps) {
+        //   // record the last diag open...
+        //   _.forEach(this.oldFsgMaps, (fsgMap) => {
+        //     // console.log(`Old:`);
+        //     // console.log(fsgMap);
+        //     const currentFsg = _.find(this.fsgMaps, (curFsg) => {
+        //       return curFsg.fsgName == fsgMap.fsgName
+        //     });
+        //     if (currentFsg) {
+        //       // console.log(`Set expanded state.`);
+        //       currentFsg.expanded = fsgMap.expanded;
+        //     }
+        //   });
+        // }
+        // this.oldFsgMaps = this.fsgMaps;
         this.hideLoadingDialog();
       }));
     }
@@ -212,6 +248,25 @@ export class MapsListComponent extends BaseComponent {
 
   isNormalMode() {
     return this.mapService.isNormalMode();
+  }
+
+  loadPreferences() {
+    this.fireAuth.getUserInfo(this.fireAuth.currentUser).subscribe(user => {
+      if (user.userInfoObj.geo) {
+        const geoLocEmitter = new EventEmitter<any>();
+        let lastSaved = null;
+        geoLocEmitter.subscribe(pos => {
+          const now = moment();
+          if (lastSaved != null && now.isBefore(lastSaved.add(1, 'minute'))) {
+            return;
+          }
+          lastSaved = now;
+          this.fireAuth.saveLoc(this.fireAuth.currentUser.userObj.uid, pos);
+        });
+        this.mapService.enableGeolocation(geoLocEmitter);
+      }
+      this.fireAuth.saveOnlineStat(this.fireAuth.currentUser);
+    });
   }
 
 }

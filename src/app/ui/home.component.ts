@@ -17,7 +17,7 @@ export class HomeComponent extends BaseComponent {
   @ViewChild('myMapsList')
   private mapListComp: MapsListComponent;
   addUrl: string;
-  appTitle: string = environment.app.title;
+  appTitle: string = `${environment.app.title} ${environment.version.current}`;
 
   constructor(fireAuth: AuthService, dialog: MatDialog, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     super();

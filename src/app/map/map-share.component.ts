@@ -59,7 +59,7 @@ export class MapShareComponent extends BaseComponent {
   done() {
     this.showLoadingDialog();
     if (this.ownerMode) {
-      if (_.isEmpty(this.userList)){
+      if (_.isEmpty(this.userList)) {
         this.mapService.removeOwner(this.map, this.curOwner);
         this.mapService.removeUsers(this.map, this.map.getUsersList());
       } else {
@@ -68,7 +68,7 @@ export class MapShareComponent extends BaseComponent {
         this.mapService.updateOwner(this.map, this.userList[0], this.curOwner);
       }
     } else {
-      if (_.isEmpty(this.userList)){
+      if (_.isEmpty(this.userList)) {
         console.log(`Remove userslist`);
         console.log(this.removeUsersList);
         this.mapService.removeUsers(this.map, this.removeUsersList);

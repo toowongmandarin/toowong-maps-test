@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   app: {
-    title: "Macgregor Ministry Maps 2.8",
+    title: "Macgregor Ministry Maps",
     mapBase: 'https://macgregor.jwapp.xyz/#'
   },
   firebase: {
@@ -13,9 +13,11 @@ export const environment = {
     messagingSenderId: "232314776603"
   },
   version: {
-    current: '2.8',
-    list: ['2.8', '2.7.1', '2.7'],
+    current: '2.82',
+    list: ['2.82', '2.8.1', '2.8', '2.7.1', '2.7'],
     details: {
+      '2.82': 'Address list dialog now allows editing of addresses. Improved progress report.',
+      '2.8.1': 'Improved progress report information.',
       '2.8': 'Added territory coverage information to the home page. Added release notes to the menu, logout button now part of the menu.',
       '2.7.1': 'Fixed map sharing feature.',
       '2.7': 'Campaign mode added. For map updaters, completed maps are now grayed out and cannot be easily started.'

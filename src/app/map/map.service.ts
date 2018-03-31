@@ -171,6 +171,8 @@ export class MapService {
   ];
   metadata: any;
   currentActiveMapRoot = '/assignedMaps/active/';
+  locationWatch: any;
+  preferences: any;
 
   constructor(protected db: AngularFireDatabase) {
     this.maps = [];
@@ -241,6 +243,7 @@ export class MapService {
       _.remove(mapBin.addresses, add => {
         return add.$key == addObj.$key;
       });
+      addObj.addId = addObj.$key;
       mapBin.addresses.push(addObj);
       return Observable.of(addObj);
     })
@@ -258,6 +261,9 @@ export class MapService {
             add.status = _.toNumber(val);
           }
         });
+        if (_.isUndefined(add.status) || _.isNull(add.status)) {
+          add.status = 0;
+        }
       });
       map.addresses = mapBin.addresses;
       return Observable.of(map);
@@ -696,6 +702,31 @@ export class MapService {
     });
   }
 
+  updateAddrStats(map, user, cb=null) {
+    const updateObj: any = {};
+    const mapObj = map.mapObj;
+    _.each(map.addresses, (addObj) => {
+        const nhData: any = {};
+        const mapId = mapObj.$key;
+        const addId = addObj.addId;
+        const status = addObj.status;
+        updateObj[`${this.currentActiveMapRoot}${mapId}/address/${addId}`] = status;
+        if (status == 3 || status == 4) {
+          // not at home 1 or 2
+          nhData.nh_when = moment().toDate();
+          nhData.nh_by = user.userInfoObj.name;
+          updateObj[`${this.currentActiveMapRoot}${mapId}/det/${addId}/nh_when`] = nhData.nh_when;
+          updateObj[`${this.currentActiveMapRoot}${mapId}/det/${addId}/nh_by`] = nhData.nh_by;
+        }
+        updateObj[`${this.currentActiveMapRoot}${mapId}/lastSaved`] = {id: user.userObj.uid, name: user.userInfoObj.name, when: moment().toDate() };
+    });
+    
+    // if (cb) cb(map);
+    this.db.database.ref().update(updateObj).then(()=> {
+      if (cb) cb(mapObj);
+    });
+  }
+
   getCompletionPercentage(map: Map) {
     if (map.mapObj.addresses && map.assgnObj && !_.isUndefined(map.assgnObj.address)) {
       return Math.round((this.getVisitedAddresses(map) / map.addressCount) * 100);
@@ -749,6 +780,25 @@ export class MapService {
 
   isNormalMode() {
     return !this.metadata.mode.campaign;
+  }
+
+  enableGeolocation(onAddLocMarker) {
+    if (navigator.geolocation) {
+      this.locationWatch = navigator.geolocation.watchPosition( pos => {
+        onAddLocMarker.emit({
+          position: {lat: pos.coords.latitude, lng: pos.coords.longitude}
+        });
+      }, error => {
+          console.error(error);
+      });
+    }
+  }
+
+  disableGeolocation(onAddLocMarker) {
+    if (navigator.geolocation) {
+      navigator.geolocation.clearWatch(this.locationWatch);
+      onAddLocMarker.emit(null);
+    }
   }
 
   findByTerm(path: string, term:any, param:any, isExactSearch:boolean) {

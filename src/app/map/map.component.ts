@@ -11,6 +11,7 @@ import { BaseComponent } from '../base/base.component';
 import { AuthService } from '../user/user.component';
 import {DomSanitizer} from '@angular/platform-browser';
 import { NotifyDlgComponent } from '../ui/home.component';
+import moment from 'moment-es6';
 
 @Component({
   selector: 'map-component',
@@ -45,6 +46,7 @@ export class MapComponent extends BaseComponent {
   onComplete = new EventEmitter<any>();
   onAddressClick = new EventEmitter<any>();
   onAddLocMarker = new EventEmitter<any>();
+  onPosMarker = new EventEmitter<any>();
   onFit = new EventEmitter<any>();
 
   minimumClusterSize: number = 2;
@@ -67,6 +69,7 @@ export class MapComponent extends BaseComponent {
   locationSearching: boolean = false;
   locationWatch: any;
   currentFeedbackUrl: string;
+  currentAddrList: any;
 
   addUrl: string;
   notifyDlg: any;
@@ -92,8 +95,28 @@ export class MapComponent extends BaseComponent {
       this.mapId = params['id'];
       this.mapService.getMetadata().subscribe(meta => {
         this.loadMaps();
+        this.loadPreferences();
       });
     }));
+  }
+
+  loadPreferences() {
+    this.fireAuth.getUserInfo(this.fireAuth.currentUser).subscribe(user => {
+      if (user.userInfoObj.geo) {
+        const geoLocEmitter = new EventEmitter<any>();
+        let lastSaved = null;
+        geoLocEmitter.subscribe(pos => {
+          const now = moment();
+          if (lastSaved != null && now.isBefore(lastSaved.add(1, 'minute'))) {
+            return;
+          }
+          lastSaved = now;
+          this.fireAuth.saveLoc(this.fireAuth.currentUser.userObj.uid, pos);
+        });
+        this.mapService.enableGeolocation(geoLocEmitter);
+      }
+      this.fireAuth.saveOnlineStat(this.fireAuth.currentUser);
+    });
   }
 
   ngOnDestroy() {
@@ -112,10 +135,7 @@ export class MapComponent extends BaseComponent {
     if (this.showLocation) {
       this.showCurrentLoc();
     } else {
-      if (navigator.geolocation) {
-        navigator.geolocation.clearWatch(this.locationWatch);
-        this.onAddLocMarker.emit(null);
-      }
+      this.mapService.disableGeolocation(this.onPosMarker);
     }
   }
 
@@ -226,6 +246,9 @@ export class MapComponent extends BaseComponent {
       }]);
 
       this.currentMap = map;
+      if (this.currentAddrList) {
+        this.currentAddrList = _.cloneDeep(this.currentMap.addresses);
+      }
 
       this.mapService.createMarkersWithStatus(map);
       this.points = this.mapService.mapMarkers;
@@ -306,17 +329,7 @@ export class MapComponent extends BaseComponent {
   getStatuses() {
     if (!this.addrStatuses) {
       if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
-        if (this.mapService.isNormalMode()) {
-          this.addrStatuses = this.mapService.addrStatuses;
-        } else {
-          this.addrStatuses = [];
-          // when on campaign mode remove the not-at-home-2 status
-          _.forEach(this.mapService.addrStatuses, stat => {
-            if (stat.val != 4) {
-              this.addrStatuses.push(stat);
-            }
-          });
-        }
+        this.addrStatuses = this.mapService.addrStatuses;
       } else {
         this.addrStatuses = [];
         if (this.mapService.isNormalMode()) {
@@ -326,9 +339,9 @@ export class MapComponent extends BaseComponent {
            }
          });
        } else {
-         // when on campaign mode remove the not-at-home-2 status
+         // when on campaign mode remove the not-at-home
          _.forEach(this.mapService.addrStatuses, stat => {
-          if (stat.val != 3 && stat.val != 4 && stat.val != 5 && stat.val != 7) {
+          if (stat.val != 4 && stat.val != 5 && stat.val != 7) {
             this.addrStatuses.push(stat);
           }
         });
@@ -362,30 +375,21 @@ export class MapComponent extends BaseComponent {
   }
 
   showCurrentLoc() {
-    if (navigator.geolocation) {
-      this.locationSearching = true;
-      this.locationWatch = navigator.geolocation.watchPosition( pos => {
-        console.log(`Curernt position:`);
-        console.log(pos.coords);
-        if (this.locationSearching) {
-          this.locationSearching = false;
-        }
+    this.onPosMarker.subscribe(pos => {
+      if (this.locationSearching) {
+        this.locationSearching = false;
+      }
+      if (pos) {
         this.onAddLocMarker.emit({
-          position: {lat: pos.coords.latitude, lng: pos.coords.longitude},
+          position: pos.position,
           iconUrl: this.currentLocation.iconUrl
         });
-        // this.currentLocation.addObj.clat = pos.coords.latitude;
-        // this.currentLocation.addObj.clang = pos.coords.longitude;
-        //
-        // if (!this.currentLocation.pushed) {
-        //   this.currentLocation.pushed = true;
-        //   // this.points.push(this.currentLocation);
-        //   // this.mapService.triggerUpdate();
-        // }
-      }, error => {
-          console.error(error);
-      });
-    }
+        this.fireAuth.saveLoc(this.fireAuth.currentUser.userObj.uid, pos);
+      } else {
+        this.onAddLocMarker.emit(null);
+      }
+    });
+    this.mapService.enableGeolocation(this.onPosMarker);
   }
 
   clearMaps() {
@@ -431,6 +435,22 @@ export class MapComponent extends BaseComponent {
     });
   }
 
+  saveStatuses() {
+    this.currentMap.addresses = this.currentAddrList;
+    this.closeAddrListDlg();
+    this.showLoadingDialog();
+    this.mapService.updateAddrStats(this.currentMap, this.fireAuth.currentUser, (map) => {
+      _.each(map.addresses, (addObj)=>{
+        const status = addObj.status;
+        const addId = addObj.$key;
+
+        this.currentMap.setStatus(addId, status);
+        // this.currentMap.setStatusDetail(addId, nhData);
+      });
+      this.hideLoadingDialog();
+    });
+  }
+
   hasMultiAdds() {
     return _.isArray(this.currentAddr.addObj) && !this.selectedAddObj;
   }
@@ -451,16 +471,17 @@ export class MapComponent extends BaseComponent {
 
   viewList() {
     this.getStatuses();
-
-      this.addrListDlg = this.dialog.open(AddressListDlgComponent, {
-        data: {consumer: this},
-        disableClose: true
-      });
-
+    // make a copy of the address list to we can cancel
+    this.currentAddrList = _.cloneDeep(this.currentMap.addresses);
+    this.addrListDlg = this.dialog.open(AddressListDlgComponent, {
+      data: {consumer: this},
+      disableClose: true
+    });
   }
 
   closeAddrListDlg() {
     this.addrListDlg.close();
+    this.currentAddrList = null;
     // this.addrListDlg = null;
   }
 
@@ -484,10 +505,18 @@ export class MapComponent extends BaseComponent {
     return label;
   }
 
-  getStatusBgColor(addObj) {
+  getStatus(addObj) {
+    if (_.isUndefined(addObj.status) || _.isNull(addObj.status)) {
+      addObj.status = 0;
+    }
+    return addObj;
+  }
+
+  getStatusBgColor(addObj, stat=null) {
     let bg = "#960202";
-    if (!_.isUndefined(addObj.status)) {
-      switch(addObj.status) {
+    const status = addObj ? addObj.status : stat;
+    if (!_.isUndefined(status)) {
+      switch(status) {
         case 1:
           bg = "#428214";
           break;

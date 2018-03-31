@@ -1,20 +1,23 @@
 <div mat-dialog-content>
-  <mat-card>
-    <mat-card-content>
+
       <span><h3>{{ data.consumer.title }} </h3></span>
       <table width="100%">
         <tr>
-            <td width="80%"><strong>Address</strong></td>
-            <td width="20%"><strong>Status</strong></td>
+            <td><strong>Address</strong></td>
+            <td width="110px;"><strong>Status</strong></td>
         </tr>
-        <tr *ngFor="let addObj of data.consumer.currentMap.addresses">
-          <td width="80%">{{ data.consumer.getAddressTitle(addObj) }}</td>
-          <td width="20%" [style.background-color]="data.consumer.getStatusBgColor(addObj)">{{ data.consumer.getStatusLabel(addObj) }}</td>
+        <tr *ngFor="let addObj of data.consumer.currentAddrList">
+          <td >{{ data.consumer.getAddressTitle(addObj) }}</td>
+          <td >
+            <mat-select [(ngModel)]="addObj.status" [style.font-weight]="'bold'" [style.background-color]="data.consumer.getStatusBgColor(addObj)">
+              <ng-container *ngFor="let stat of data.consumer.addrStatuses">
+                <mat-option [value]="stat.val" >{{stat.label}}</mat-option>
+              </ng-container>
+            </mat-select>
+          </td>
         </tr>
       </table>
-    </mat-card-content>
-    <mat-card-actions>
+      <br/>
+      <button mat-fab *ngIf="data.consumer.mapStarted" (click)="data.consumer.saveStatuses()" ><mat-icon>save</mat-icon></button>
       <button mat-fab (click)="data.consumer.closeAddrListDlg()"><mat-icon>cancel</mat-icon></button>
-    </mat-card-actions>
-  </mat-card>
 </div>

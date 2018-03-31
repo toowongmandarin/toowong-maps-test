@@ -1,6 +1,6 @@
 
 <td-message *ngIf="!hasMaps" label="Info" sublabel="You have no maps, please contact the maps team if you are expecting maps." color="accent" icon="info"></td-message>
-<td-expansion-panel *ngFor="let fsg of fsgMaps" [expand]="fsg.expanded" (expanded)="toggleExpand(fsg, true)" (collapsed)="toggleExpand(fsg, false)">
+<td-expansion-panel *ngFor="let fsg of fsgMaps" (expanded)="toggleExpand(fsg, true)" (collapsed)="toggleExpand(fsg, false)">
   <ng-template td-expansion-panel-header>
     <mat-toolbar [ngClass]="'bgc-blue-grey-600 whiteText marginTopBottom-2'">
       <span><h2>{{ getFsgName(fsg) }}</h2> </span>
@@ -48,6 +48,8 @@
     </mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <h4>Current overall territory coverage: {{ getOverallCompletion() }}% </h4>
+    <h4 *ngIf="metadata.mode.campaign">Days left for this campaign: {{ getCompletionReport().daysLeft }} days</h4>
+    <h4>Current overall map completion: {{ getOverallCompletion() }}% ( {{ getCompletionReport().completedMaps }} of {{ getMapCount() }} maps )</h4>
+    <h4>Current number addresses visited: {{ getCompletionReport().completionAddr }}% ( {{ getCompletionReport().visitedAddresses }} of {{ getCompletionReport().totalAddresses }} addresses )</h4>
   </mat-card-content>
 </mat-card>

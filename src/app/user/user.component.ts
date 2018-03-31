@@ -4,6 +4,7 @@ import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFireDatabase } from 'angularfire2/database';
 import * as firebase from 'firebase/app';
 import * as _ from "lodash";
+import moment from 'moment-es6';
 
 export class MapsUser {
   userInfoObj: any;
@@ -131,4 +132,11 @@ export class AuthService {
     this.db.object(`/users/requests/pending/createUser/${Date.now()}`).update({name: name, email: email, role: role});
   }
 
+  saveLoc(uid, pos) {
+    this.db.object(`/log/${uid}/loc`).update({lat: pos.position.lat, lng: pos.position.lng, date: moment().utcOffset('+10:00').toISOString(true)});
+  }
+
+  saveOnlineStat(currentUser) {
+    this.db.object(`/log/${currentUser.userObj.uid}/lastSeen`).update({name: currentUser.userInfoObj.name, date: moment().utcOffset('+10:00').toISOString(true)});
+  }
 }
