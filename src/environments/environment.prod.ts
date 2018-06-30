@@ -13,9 +13,11 @@ export const environment = {
     messagingSenderId: "232314776603"
   },
   version: {
-    current: '2.82',
-    list: ['2.82', '2.8.1', '2.8', '2.7.1', '2.7'],
+    current: '2.84',
+    list: ['2.84', '2.83', '2.82', '2.8.1', '2.8', '2.7.1', '2.7'],
     details: {
+      '2.84': 'Allowed setting of ownership on started maps. Added tag for personal territories. Added notes field for map updaters.',
+      '2.83': 'Added personal territory flag when assigning ownership. Added link to Google Maps from address list. ',
       '2.82': 'Address list dialog now allows editing of addresses. Improved progress report.',
       '2.8.1': 'Improved progress report information.',
       '2.8': 'Added territory coverage information to the home page. Added release notes to the menu, logout button now part of the menu.',

@@ -8,7 +8,7 @@ import { MapService } from './map.service';
 import { AngularFireDatabaseModule } from 'angularfire2/database';
 import { LoadingDialog } from './loading-diag.component';
 import { MarkerClusterDirective } from './marker-cluster';
-import { MatTabsModule, MatMenuModule, MatProgressBarModule, MatRadioModule, MatInputModule, MatAutocompleteModule, MatDialogModule, MatListModule, MatSlideToggleModule, MatCardModule, MatChipsModule, MatButtonModule, MatToolbarModule, MatIconModule, MatButtonToggleModule, MatSelectModule } from '@angular/material';
+import { MatCheckboxModule, MatTabsModule, MatMenuModule, MatProgressBarModule, MatRadioModule, MatInputModule, MatAutocompleteModule, MatDialogModule, MatListModule, MatSlideToggleModule, MatCardModule, MatChipsModule, MatButtonModule, MatToolbarModule, MatIconModule, MatButtonToggleModule, MatSelectModule } from '@angular/material';
 import { CovalentExpansionPanelModule, CovalentMessageModule } from '@covalent/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthModule } from '../user/user.module';
@@ -47,7 +47,8 @@ import { MapSearchComponent } from './map-search.component'
     CovalentExpansionPanelModule,
     CovalentMessageModule,
     AuthModule,
-    MatTabsModule
+    MatTabsModule,
+    MatCheckboxModule
    ],
   declarations: [ MapComponent, MapsListComponent, MarkerClusterDirective, LoadingDialog, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent, MapAdminComponent, MapSearchComponent ],
   exports:      [ MapComponent, MapsListComponent, MapShareComponent, MapShareDlgComponent, AddressDlgComponent, AddressListDlgComponent, MapReturnConfirmDlgComponent, MarkerClusterDirective, MapAdminComponent, MapSearchComponent ],

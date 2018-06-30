@@ -30,6 +30,8 @@
           <mat-chip *ngIf="map.assgnObj && map.assgnObj.expiry" [style.background-color]="getBg(map.assgnObj.expiry)" >Expiry: {{ map.assgnObj.expiry | date:'dd MMM y'}}</mat-chip>
           <mat-chip *ngIf="map.mapObj.lastCompleted && isUpdater() && isNormalMode()">Last completed: {{ map.mapObj.lastCompleted | date:'dd MMM y'}}</mat-chip>
           <mat-chip *ngIf="map.assgnObj.prevOwner && isUpdater()" >Last Owner: {{ map.assgnObj.prevOwner.name }}</mat-chip>
+          <mat-chip *ngIf="map.assgnObj.isPersonal">Personal Territory</mat-chip>
+          <mat-chip *ngIf="map.assgnObj.notes">{{ map.assgnObj.notes }}</mat-chip>
         </mat-chip-list>
       </div>
     </mat-card-content>

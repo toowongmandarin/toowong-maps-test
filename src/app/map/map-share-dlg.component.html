@@ -8,11 +8,16 @@
         <mat-card-subtitle>{{ data.consumer.ownerCardDesc }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
+        <mat-checkbox [(ngModel)]="data.consumer.isPersonal" name="isPersonal" (click)="data.consumer.togglePersonal()">Personal Territory</mat-checkbox>
         <tag-input [(ngModel)]="data.consumer.userList" name="ownerDlg"
            [editable]="true" [identifyBy]="'id'" [displayBy]="'name'"
            [maxItems]="1" [onlyFromAutocomplete]="true" [placeholder]="data.consumer.placeHolderTxt" [secondaryPlaceholder]="data.consumer.placeHolderTxt">
            <tag-input-dropdown [appendToBody]="false" [autocompleteItems]='data.consumer.mapUsers' [identifyBy]="'$key'" [displayBy]="'name'"></tag-input-dropdown>
         </tag-input>
+        <mat-form-field>
+          <textarea matInput placeholder="Additional notes" matTextareaAutosize matAutosizeMinRows="1"
+           matAutosizeMaxRows="10" [(ngModel)]="data.consumer.notes" name="notes"></textarea>
+        </mat-form-field>
         <!-- <mat-form-field>
            <input type="text" matInput name="selUser" [(ngModel)]="data.consumer.selUser"  [matAutocomplete]="autoPub">
         </mat-form-field>

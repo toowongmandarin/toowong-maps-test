@@ -20,16 +20,22 @@ export class MapShareComponent extends BaseComponent {
   errorMsg: string;
   shareDlg: MatDialogRef<any>;
   userList:any;
+  isPersonal: boolean;
   newUsersList: any[] = [];
   removeUsersList: any[] = [];
   curOwner: any = null;
   placeHolderTxt: string = 'Type and select name';
   ownerCardTitle: string = 'Map Owner';
-  ownerCardDesc: string = `An owner can use/share the map within 2 weeks from the time of assignment. After this time, the map will be removed from the owner's assignment list. Please reassign ownership if needed. A map can only have one owner. Removing an owner, will remove all users.`;
+  ownershipPersonalDuration = '3 months';
+  ownershipDuration = '2 weeks';
+  ownerCardDesc: string = `An owner can use/share the map within ${this.ownershipDuration} from the time of assignment. After this time, the map will be removed from the owner's assignment list. Please reassign ownership if needed. A map can only have one owner. Removing an owner, will remove all users.`;
+  defaultOwnerCardDesc: string = this.ownerCardDesc;
+  ownershipPersonalDesc: string = `Please consult the Service Overseer when assigning personal territories. An owner can use/share the map within ${this.ownershipPersonalDuration} from the time of assignment. After this time, the map will be removed from the owner's assignment list. Please reassign ownership if needed. A map can only have one owner. Removing an owner, will remove all users.`;
   shareCardTitle: string = 'Map Users';
   shareCardDesc: string = `A user will have access to the map within the day of the assignment. After this time, the map will be removed from the user's list. Please reshare again if needed.`;
   ownerMode: boolean = false; // whether to set owners or sharers
   confirmDlg: MatDialogRef<any>;
+  notes: any;
 
   constructor(dialog: MatDialog, fireAuth: AuthService, protected mapService: MapService, private winRef: WindowRef) {
     super();
@@ -41,6 +47,8 @@ export class MapShareComponent extends BaseComponent {
     this.ownerMode = ownerMode;
     this.subs.push(this.fireAuth.getAllUsersList().subscribe(userList => {
       this.mapUsers = userList;
+      this.isPersonal = this.map.assgnObj.isPersonal;
+      this.notes = this.map.assgnObj.notes;
       if (this.ownerMode && this.map.hasOwner()) {
         this.curOwner = this.map.getOwner();
         this.userList = [this.curOwner];
@@ -60,12 +68,17 @@ export class MapShareComponent extends BaseComponent {
     this.showLoadingDialog();
     if (this.ownerMode) {
       if (_.isEmpty(this.userList)) {
-        this.mapService.removeOwner(this.map, this.curOwner);
+        this.mapService.removeOwner(this.map, this.curOwner, this.notes);
         this.mapService.removeUsers(this.map, this.map.getUsersList());
       } else {
-        // set to 2 weeks from now...
-        this.userList[0].expiry = moment().hour(20).minute(0).second(0).add(16, 'days').toDate(); // set to expire at 8 pm eery time..
-        this.mapService.updateOwner(this.map, this.userList[0], this.curOwner);
+        if (this.isPersonal) {
+          // set to 3 months from now...
+          this.userList[0].expiry = moment().hour(18).minute(0).second(0).add(3, 'months').toDate(); // set to expire at 8 pm eery time..
+        } else {
+          // set to 2 weeks from now...
+          this.userList[0].expiry = moment().hour(18).minute(0).second(0).add(16, 'days').toDate(); // set to expire at 8 pm eery time..
+        }
+        this.mapService.updateOwner(this.map, this.userList[0], this.curOwner, this.isPersonal, this.notes);
       }
     } else {
       if (_.isEmpty(this.userList)) {
@@ -99,7 +112,7 @@ export class MapShareComponent extends BaseComponent {
     if (this.campaignMode) {
       doneCtr = this.map.mapObj.campaignCtr;
     }
-    if (doneCtr > 0 && !this.fireAuth.currentUser.isAdmin()) {
+    if (doneCtr > 0 && (!this.fireAuth.currentUser.isAdmin() && !this.map.hasOwner())) {
       return false;
     }
     return this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater();
@@ -153,6 +166,14 @@ export class MapShareComponent extends BaseComponent {
       return entry.id == item.id;
     });
     this.removeUsersList.push(item);
+  }
+
+  togglePersonal() {
+    if (this.isPersonal) {
+      this.ownerCardDesc = this.ownershipPersonalDesc;
+    } else {
+      this.ownerCardDesc = this.defaultOwnerCardDesc;
+    }
   }
 }
 

@@ -631,26 +631,29 @@ export class MapService {
 
   }
 
-  updateOwner(map: Map, owner: any, prevOwner: any) {
+  updateOwner(map: Map, owner: any, prevOwner: any, isPersonal:boolean = false, notes:any = null) {
     const updateObj = {};
-    const assgnInfo:any = {
-      owner: {id: owner.id, name: owner.name, expiry: owner.expiry},
-      expiry: owner.expiry,
-      started: map.assgnObj.started
-    };
+
     if (map.assgnObj.address) {
-      assgnInfo.address =  map.assgnObj.address;
+      updateObj[`${this.currentActiveMapRoot}${map.id}/address`] = map.assgnObj.address;
     }
     if (map.assgnObj.users) {
-      assgnInfo.users = map.assgnObj.users;
+      updateObj[`${this.currentActiveMapRoot}${map.id}/users`] = map.assgnObj.users;
     }
     if (_.isEmpty(map.assgnObj.started)) {
-      assgnInfo.started = moment().toDate();
+      updateObj[`${this.currentActiveMapRoot}${map.id}/started`] = moment().toDate();
     }
     if (prevOwner && owner.id != prevOwner.id) {
-      assgnInfo.prevOwner = prevOwner;
+      updateObj[`${this.currentActiveMapRoot}${map.id}/prevOwner`] = prevOwner;
     }
-    updateObj[`${this.currentActiveMapRoot}${map.id}`] = assgnInfo;
+
+    if (!_.isNull(notes)) {
+      updateObj[`${this.currentActiveMapRoot}${map.id}/notes`] = notes;
+    }
+    updateObj[`${this.currentActiveMapRoot}${map.id}/owner`] = {id: owner.id, name: owner.name, expiry: owner.expiry};
+    updateObj[`${this.currentActiveMapRoot}${map.id}/expiry`] = owner.expiry;
+    updateObj[`${this.currentActiveMapRoot}${map.id}/isPersonal`] = isPersonal;
+
     updateObj[`${this.getUserMapPath(owner.id, map.id)}/expiry`] = owner.expiry;
     this.db.database.ref().update(updateObj);
   }
@@ -667,8 +670,11 @@ export class MapService {
     this.db.database.ref().update(updateObj);
   }
 
-  removeOwner(map: Map, prevOwner: any) {
+  removeOwner(map: Map, prevOwner: any, notes:any = null) {
     const updateObj = {};
+    if (!_.isNull(notes)) {
+      updateObj[`${this.currentActiveMapRoot}${map.id}/notes`] = notes;
+    }
     updateObj[`${this.currentActiveMapRoot}${map.id}/owner`] = null;
     updateObj[`${this.currentActiveMapRoot}${map.id}/expiry`] = null;
     updateObj[`${this.getUserMapPath(prevOwner.id, map.id)}`] = null;
@@ -720,7 +726,7 @@ export class MapService {
         }
         updateObj[`${this.currentActiveMapRoot}${mapId}/lastSaved`] = {id: user.userObj.uid, name: user.userInfoObj.name, when: moment().toDate() };
     });
-    
+
     // if (cb) cb(map);
     this.db.database.ref().update(updateObj).then(()=> {
       if (cb) cb(mapObj);
