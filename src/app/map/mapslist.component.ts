@@ -139,7 +139,10 @@ export class MapsListComponent extends BaseComponent {
   }
 
   getFsgName(fsg) {
-    return fsg.fsgName != 'Your Maps' ? `${fsg.fsgName} - ${fsg.getCompletionPercent() }%` : fsg.fsgName;
+    if (fsg.fsgName != 'Your Maps') {
+      return `${fsg.fsgName} ${ this.mapService.fsgHasCompletion(fsg.fsgName) ? `- ${fsg.getCompletionPercent()}%` : ''}`;
+    }
+    return fsg.fsgName;
   }
 
   protected getAllMapsList() {
@@ -206,7 +209,8 @@ export class MapsListComponent extends BaseComponent {
     // if (this.fireAuth.currentUser) {
     //   console.log(map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
     // }
-    return this.fireAuth.currentUser && (map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
+    return this.fireAuth.currentUser
+      && (map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
   }
 
   getCompletionPercentage(map: Map) {

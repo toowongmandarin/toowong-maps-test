@@ -328,25 +328,7 @@ export class MapComponent extends BaseComponent {
 
   getStatuses() {
     if (!this.addrStatuses) {
-      if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
-        this.addrStatuses = this.mapService.addrStatuses;
-      } else {
-        this.addrStatuses = [];
-        if (this.mapService.isNormalMode()) {
-          _.forEach(this.mapService.addrStatuses, stat => {
-           if (stat.val != 5 && stat.val != 7) {
-             this.addrStatuses.push(stat);
-           }
-         });
-       } else {
-         // when on campaign mode remove the not-at-home
-         _.forEach(this.mapService.addrStatuses, stat => {
-          if (stat.val != 4 && stat.val != 5 && stat.val != 7) {
-            this.addrStatuses.push(stat);
-          }
-        });
-       }
-      }
+      this.addrStatuses = this.currentMap.getAddrStatuses(this.fireAuth.currentUser, this.mapService);
     }
   }
 
@@ -518,6 +500,7 @@ export class MapComponent extends BaseComponent {
     if (!_.isUndefined(status)) {
       switch(status) {
         case 1:
+        case 9:
           bg = "#428214";
           break;
         case 2:
@@ -537,6 +520,9 @@ export class MapComponent extends BaseComponent {
           break;
         case 8:
           bg = "#227874";
+          break;
+        case 10:
+          bg = "#f2046f";
           break;
       }
     }

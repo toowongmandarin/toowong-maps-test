@@ -96,6 +96,52 @@ export class Map {
     }
     this.assgnObj.det[addId] = detailData;
   }
+
+  getAddrStatuses(currentUser, mapService) {
+    let addrStatuses = [];
+    if (currentUser.isAdmin() || currentUser.isUpdater()) {
+      if (this.mapObj.search) {
+        // this.addrStatuses = this.mapService.addrStatuses;
+        addrStatuses = _.filter(mapService.addrStatuses, (stat:any) => {
+          if (stat.val != 10 && stat.val != 4) {
+            if (stat.val == 3) {
+              stat.label = "Not at Home";
+            }
+            return stat;
+          } else {
+            return false;
+          }
+        });
+      } else {
+        addrStatuses = _.filter(mapService.addrStatuses, (stat:any) => {
+          return stat.val != 10 ? stat : false;
+        });
+      }
+    } else {
+      if (mapService.isNormalMode()) {
+        _.forEach(mapService.addrStatuses, stat => {
+         if (stat.val != 5 && stat.val != 7) {
+           // skip not at home 2 and not at home 3 for search maps
+           if (!this.mapObj.search && (stat.val == 10 || stat.val == 4) ) {
+              return true;
+           } else
+           if (stat.val == 3 && this.mapObj.search) {
+             stat.label = "Not at Home";
+           }
+           addrStatuses.push(stat);
+         }
+       });
+     } else {
+       // when on campaign mode remove the not-at-home
+       _.forEach(mapService.addrStatuses, stat => {
+        if (stat.val != 4 && stat.val != 5 && stat.val != 7 && stat.val != 10) {
+          addrStatuses.push(stat);
+        }
+      });
+     }
+    }
+    return addrStatuses;
+  }
 }
 
 export class Fsg {
@@ -161,10 +207,12 @@ export class MapService {
   fsgs: Fsg[] = [];
   addrStatuses = [
     { val: 0, label: "Not Done" },
-    { val: 1, label: "Done" },
+    { val: 1, label: "Done - Mandarin" },
+    { val: 9, label: "Done - Cantonese" },
     { val: 2, label: "Not Chinese" },
     { val: 3, label: "Not at Home - 1"},
     { val: 4, label: "Not at Home - 2" },
+    { val: 10, label: "Not at Home - 3" },
     { val: 5, label: "Do Not Call" },
     { val: 7, label: "Phone Witnessing" },
     { val: 8, label: "Reported Issue" },
@@ -473,17 +521,25 @@ export class MapService {
 
   getAllFsgMaps(mapBin: any): Observable<any> {
     this.fsgs.length = 0;
-    return this.db.list('/fsg/list').flatMap(fsgList=>{
+    return this.db.object('/fsg/list').flatMap(fsgObjList=>{
       // console.log(`Got fsg list...`);
+      const fsgList = [];
+      _.forOwn(fsgObjList, (fsgVal, fsgKey) => {
+        fsgList.push({'$key': fsgKey, '$value': fsgVal});
+      });
       return Observable.from(fsgList);
     })
     .flatMap((fsgObj:any) => {
       const fsgName = fsgObj.$value;
       // console.log(`Getting FSG: ${fsgName}`);
-      return this.db.list(`/fsg/${fsgName}`).flatMap(mapIdList => {
+      return this.db.object(`/fsg/${fsgName}`).flatMap(mapIdObjList => {
         // console.log(`Got map ids...`);
+        const mapIdList = [];
+        _.forOwn(mapIdObjList, (mapIdVal, mapIdKey) => {
+          mapIdList.push({'$key': mapIdKey, '$value': mapIdVal})
+        });
         mapIdList.forEach(mapId => {
-          mapBin[mapId.$value] = {fsgName: fsgName};
+          mapBin[mapId.$value] = {fsgName: fsgName, mapKey: mapId.$key};
         });
         // console.log(mapBin);
         return Observable.from(mapIdList);
@@ -750,11 +806,18 @@ export class MapService {
           switch (status) {
             case 1:
             case 2:
-            case 4:
             case 5:
             case 7:
             case 8:
+            case 9:
+            case 10:
               numDone++;
+              break;
+            case 4:
+              if (!map.mapObj.search) {
+                numDone++;
+              }
+              break;
           }
         }
       });
@@ -818,6 +881,36 @@ export class MapService {
     // });
     //
     // return qSubject.next(param);
+  }
+
+  fsgHasCompletion(fsgName) {
+    return fsgName != "Search" && fsgName != "Queue";
+  }
+
+  addNewFsg(fsgName, cb) {
+    const that = this;
+    const updateObj = {};
+    updateObj[`/fsg/list/${fsgName}`] = fsgName;
+    updateObj[`/fsg/${fsgName}`] = 0;
+    this.db.database.ref().update(updateObj).then(()=> {
+      if (cb) cb();
+    });
+  }
+
+  addNewMap(fsgName, mapName, isSearch, cb) {
+    const updateObj = {};
+    const terId = this.metadata.ids.terId;
+    updateObj[`/maps/${terId}`] = {
+      name: mapName,
+      lname: _.toLower(mapName),
+      fsg: fsgName,
+      terId: terId
+    };
+    updateObj[`/fsg/${fsgName}/${terId}`] = terId;
+    updateObj[`/metadata/ids/terId`] = terId + 1;
+    this.db.database.ref().update(updateObj).then(()=> {
+      if (cb) cb();
+    });
   }
 
 }

@@ -12,7 +12,12 @@
     <mat-card-header>
       <mat-card-title>
         <h3>
-          {{map.mapObj.terId}} - {{map.mapObj.name}} {{ isNormalMode() ? '' : '::: Campaign'}}
+          <a *ngIf="canOpenMap(map); else elseBlock" [routerLink]="['/map', map.id]">
+            {{map.mapObj.terId}} - {{map.mapObj.name}} {{ isNormalMode() ? '' : '::: Campaign'}}
+          </a>
+          <ng-template #elseBlock >
+            {{map.mapObj.terId}} - {{map.mapObj.name}} {{ isNormalMode() ? '' : '::: Campaign'}}
+          </ng-template>
         </h3>
       </mat-card-title>
     </mat-card-header>

@@ -1,11 +1,11 @@
-<div mat-dialog-content>
+<mat-dialog-content>
     <mat-card>
       <mat-card-header>
         <mat-card-title>
           <h3>Version Release Notes</h3>
         </mat-card-title>
       </mat-card-header>
-      <mat-card-content>
+      <mat-card-content style="height:400px; overflow-y: auto">
         <mat-list>
           <mat-list-item *ngFor="let version of data.consumer.getVersions()">
             <h4 matLine> {{ version.versionNum }}</h4>
@@ -14,10 +14,10 @@
         </mat-list>
       </mat-card-content>
     </mat-card>
-  <mat-dialog-actions>
-    <button mat-mini-fab (click)="data.consumer.cancel()"><mat-icon>cancel</mat-icon></button>
-  </mat-dialog-actions>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-mini-fab (click)="data.consumer.cancel()"><mat-icon>cancel</mat-icon></button>
   <div>
     {{data.consumer.errorMsg}}
   </div>
-</div>
+</mat-dialog-actions>

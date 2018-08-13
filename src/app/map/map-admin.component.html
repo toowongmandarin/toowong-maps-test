@@ -1,0 +1,48 @@
+<div style="text-align:center">
+  <h2>
+    {{ appTitle }}
+  </h2>
+</div>
+<div>
+   <mat-toolbar [ngClass]="'bgc-blue-grey-900 whiteText marginTopBottom-2'">
+      <userinfo></userinfo>
+      <span class="fill-remaining-space"></span>
+      <span><a style="margin-right: 5px;" mat-mini-fab [routerLink]="['/home']" ><mat-icon >home</mat-icon></a></span>
+      <user-admin></user-admin>
+   </mat-toolbar>
+</div>
+<mat-tab-group >
+  <mat-tab label="Search">
+    <map-search></map-search>
+  </mat-tab>
+  <mat-tab label="Add Data">
+    <mat-radio-group class="radio-group" [(ngModel)]="newDataType" >
+      <mat-radio-button value="fsg" class="radio-button">FSG</mat-radio-button>
+      <mat-radio-button value="map" class="radio-button">Map</mat-radio-button>
+      <!-- <mat-radio-button value="[(ngModel)]="newDataType" address" class="radio-button">Address</mat-radio-button> -->
+    </mat-radio-group>
+    <!-- -->
+    <div *ngIf="newDataType == 'fsg'" style="padding: 10px;">
+      <mat-form-field >
+        <input matInput placeholder="New FSG name" [(ngModel)]="fsgName">
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="newDataType == 'map'" style="padding: 10px;">
+      <mat-form-field >
+        <input matInput placeholder="New Map Name" [(ngModel)]="mapName">
+      </mat-form-field>
+      <mat-form-field>
+        <mat-select placeholder="FSG" [(value)]="fsgName">
+            <mat-option *ngFor="let fsg of fsgs" [value]="fsg">
+              {{fsg}}
+            </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div  style="padding: 10px;">
+      <button mat-raised-button color="primary" *ngIf="newDataType != null" (click)="saveNewData()">Save</button>
+      <div *ngIf="msg">{{ msg }}</div>
+    </div>
+  </mat-tab>
+</mat-tab-group>

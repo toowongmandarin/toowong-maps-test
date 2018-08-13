@@ -108,6 +108,9 @@ export class MapShareComponent extends BaseComponent {
   }
 
   canAssignOwner() {
+    if (this.map.mapObj.fsg == 'Queue') {
+      return false;
+    }
     let doneCtr = this.map.mapObj.doneCtr;
     if (this.campaignMode) {
       doneCtr = this.map.mapObj.campaignCtr;
