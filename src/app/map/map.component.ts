@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, EventEmitter, Inject} from '@angular/core';
+import { Component, Input, ViewChild, EventEmitter, Inject, ElementRef} from '@angular/core';
 import { MapService } from './map.service';
 import { Observable } from 'rxjs/Rx';
 import { environment } from '../../environments/environment';
@@ -19,6 +19,7 @@ import moment from 'moment-es6';
   styleUrls: ['./map.component.css']
 })
 export class MapComponent extends BaseComponent {
+  @ViewChild('markerCluster') public markerClusterRef: ElementRef;
 
   currentLocation: any = {
     addObj: {clat: null, clang:null},
@@ -32,6 +33,7 @@ export class MapComponent extends BaseComponent {
   centerLng: number = 153.0807544;
   zoom: number = 13;
   height: string = '700px';
+  numHeight: number;
   heightPadding: number = 50;
 
   maxWaitTries: number = 20;
@@ -73,6 +75,19 @@ export class MapComponent extends BaseComponent {
 
   addUrl: string;
   notifyDlg: any;
+  editMode: string;
+  EDIT_MODE_STATUS: string = 'editStatus';
+  EDIT_MODE_ADDRESS:string = 'editAddress';
+  EDIT_MODE_MOVE_ADDRESS: string = 'moveAddress';
+  statusCache:any[] = [];
+  ADDRESS_UNSELECTED_ICON: string = '/assets/images/place-markers/home-unselected.svg';
+  ADDRESS_SELECTED_ICON: string = '/assets/images/place-markers/home-selected.svg';
+  selectedAddrMarkers:any[] = [];
+  selectedAddresses:any[] = [];
+  lastSelectedAddress: any = null;
+  findMapId: any = null;
+  targetMapId: any = null;
+  targetMapObj: any = null;
 
   constructor(public mapService: MapService, dialog: MatDialog, fireAuth: AuthService, private route: ActivatedRoute, public winRef: WindowRef, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     super();
@@ -84,12 +99,42 @@ export class MapComponent extends BaseComponent {
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/fitmap.svg'));
     iconRegistry.addSvgIcon('add-address',
         sanitizer.bypassSecurityTrustResourceUrl('/assets/images/add_address.svg'));
+    this.editMode = this.EDIT_MODE_STATUS;
+  }
+
+  setEditingAddress() {
+    this.editMode = this.EDIT_MODE_ADDRESS;
+  }
+
+  isEditModeAddress() {
+    return this.editMode == this.EDIT_MODE_ADDRESS;
+  }
+
+  setEditModeMoveAddress() {
+    this.editMode = this.EDIT_MODE_MOVE_ADDRESS;
+  }
+
+  isEditModeMoveAddress() {
+    return this.editMode == this.EDIT_MODE_MOVE_ADDRESS;
+  }
+
+  setEditingStatus() {
+    this.editMode = this.EDIT_MODE_STATUS;
+  }
+
+  isEditStatus() {
+    return this.editMode == this.EDIT_MODE_STATUS;
+  }
+
+  adjustHeight() {
+    this.numHeight = (this.winRef.nativeWindow.innerHeight-this.heightPadding);
+    this.height = this.numHeight + 'px';
   }
 
   postLoginSetup() {
     // check the route...
     console.log(this.winRef.nativeWindow.innerHeight);
-    this.height = (this.winRef.nativeWindow.innerHeight-this.heightPadding) + 'px';
+    this.adjustHeight();
     this.title = 'Loading...';
     this.subs.push(this.route.params.subscribe(params => {
       this.mapId = params['id'];
@@ -157,6 +202,73 @@ export class MapComponent extends BaseComponent {
     this.winRef.location('/home');
   }
 
+  saveAddressEdit() {
+    this.mapService.saveAddr(this.selectedAddObj, this.mapId == 'all' ? null : this.currentMap, null, ()=> {
+      this.selectedAddObj = null;
+      this.closeAddrDlg();
+      this.resetEditMode();
+    });
+  }
+
+  startMoveAddressMode() {
+    this.setEditModeMoveAddress();
+    _.each(this.points, (point)=> {
+      this.statusCache.push(point.marker.icon.url);
+      point.marker.icon.url = this.ADDRESS_UNSELECTED_ICON;
+    });
+    this.mapService.triggerUpdate();
+  }
+
+  stopMoveAddressMode() {
+    this.resetEditMode();
+    _.each(this.points, (point, idx) => {
+      point.marker.icon.url = this.statusCache[idx];
+    });
+    this.statusCache = [];
+    this.selectedAddresses = [];
+    this.selectedAddrMarkers = [];
+    this.mapService.triggerUpdate();
+  }
+
+  addNewAddressMode() {
+    this.selectedAddObj = [{
+        unit: '',
+        hnum: '',
+        st: '',
+        burb: '',
+        clat: '',
+        clong: '',
+        pcode: '',
+        tel: ''
+    }];
+    this.setEditingAddress();
+    this.showAddrDlg();
+  }
+
+  enableEditAddress() {
+    if (this.isEditModeAddress()) {
+      if (this.hasMultiAdds()) {
+        this.selectedAddObj = _.map(this.currentAddr.addObj, (addObj) => {
+          const clone = _.clone(addObj);
+          clone.addId = addObj.$key;
+          if (_.isUndefined(clone.unit) || clone.unit == -9) {
+            clone.unit = '';
+          }
+        });
+      } else {
+        const clone = _.clone(this.currentAddr.addObj);
+        clone.addId = this.currentAddr.addObj.$key;
+        if (_.isUndefined(clone.unit) || clone.unit == -9) {
+          clone.unit = '';
+        }
+        this.selectedAddObj = [clone];
+      }
+    }
+
+    console.log(this.selectedAddObj);
+    this.showAddrDlg();
+  }
+
   loadMaps() {
     if (!_.isEmpty(this.points)) {
       console.log(`Maps already loaded`);
@@ -166,8 +278,15 @@ export class MapComponent extends BaseComponent {
     // this.showCurrentLoc();
     this.showLoadingDialog();
     if (this.mapId == 'all') {
+      this.setEditingAddress();
       if (this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater()) {
         this.mapService.loadAllMapsWithMarkers(mapBase);
+        // // listen for onClick events for 'all maps'
+        // this.subs.push(this.onAddressClick.subscribe(data => {
+        //   console.log(data);
+        //   this.currentAddr = data.addrMarker;
+        //   this.enableEditAddress();
+        // }));
       } else {
         this.accessDenied();
         return;
@@ -211,7 +330,7 @@ export class MapComponent extends BaseComponent {
           this.subs.push(this.onAddressClick.subscribe(data => {
             console.log(data);
             this.currentAddr = data.addrMarker;
-            this.showAddrDlg();
+            this.handleAddressClick();
           }));
         }
       }
@@ -272,24 +391,92 @@ export class MapComponent extends BaseComponent {
       this.triggerUpdate = true;
       this.subs.push(this.onAddressClick.subscribe(data => {
         console.log(data);
-
         this.currentAddr = data.addrMarker;
-        if (this.hasMultiAdds()) {
-          this.currentAddrTitle = "Multiple addresses, select one below.";
-          this.currentGmapUrl = null;
-          this.selectedAddObj = null;
-        } else {
-          this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
-          this.currentGmapUrl = this.getGmapUrl(this.currentAddr.addObj);
-          this.selectedAddObj = this.currentAddr.addObj;
-          if (_.isUndefined(this.selectedAddObj.status)) {
-            this.selectedAddObj.status = 0;
-          }
-          this.buildFeedbackUrl();
-        }
-        this.showAddrDlg();
+        this.handleAddressClick();
       }));
     }));
+  }
+
+  handleAddressClick() {
+    if (this.isEditModeAddress() || this.isEditStatus()) {
+      // need to show the address dialog
+      if (this.addrDlg) {
+        // dialog already open, ignore...
+        return;
+      }
+      if (this.hasMultiAdds()) {
+        this.currentAddrTitle = "Multiple addresses, select one below.";
+        this.currentGmapUrl = null;
+        this.selectedAddObj = null;
+      } else {
+        this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
+        this.currentGmapUrl = this.getGmapUrl(this.currentAddr.addObj);
+        this.selectedAddObj = this.currentAddr.addObj;
+        if (_.isUndefined(this.selectedAddObj.status)) {
+          this.selectedAddObj.status = 0;
+        }
+        this.buildFeedbackUrl();
+      }
+      this.showAddrDlg();
+    } else if (this.isEditModeMoveAddress()) {
+      // TODO: determine why there are 2 click events!!!! For now just cache and clear
+      // So catch the last one and just ignore the second click event
+      if (this.lastSelectedAddress == this.currentAddr) {
+        this.lastSelectedAddress = null;
+        return;
+      } else {
+        this.lastSelectedAddress = this.currentAddr;
+      }
+      if (this.currentAddr.marker.icon.url == this.ADDRESS_SELECTED_ICON) {
+        this.currentAddr.marker.icon.url = this.ADDRESS_UNSELECTED_ICON;
+        _.remove(this.selectedAddrMarkers, (item) => { return _.isEqual(item, this.currentAddr)});
+      } else {
+        this.currentAddr.marker.icon.url = this.ADDRESS_SELECTED_ICON;
+        this.selectedAddrMarkers.push(this.currentAddr);
+        this.lastSelectedAddress = null;
+      }
+      this.selectedAddresses = [];
+      _.each(this.selectedAddrMarkers, addrMarker => {
+        if (_.isArray(addrMarker.addObj)) {
+          _.each(addrMarker.addObj, addObj => {
+            this.selectedAddresses.push(addObj);
+          });
+        } else {
+          this.selectedAddresses.push(addrMarker.addObj);
+        }
+      });
+      this.mapService.triggerUpdate();
+      this.adjustHeight();
+      console.log(this.selectedAddresses);
+    }
+  }
+
+  findTargetMap() {
+    this.mapService.findByTerId(this.findMapId, (mapObj) => {
+      if (mapObj) {
+        _.forOwn(mapObj, (map, mapId) => {
+          this.targetMapId = mapId;
+          this.targetMapObj = map;
+        });
+      }
+    });
+  }
+
+  moveSelectedAddresses() {
+    console.log(`Moving to ${this.targetMapId}`);
+    console.log(this.targetMapObj);
+    this.mapService.moveAddress(this.mapId, this.targetMapId, this.targetMapObj.terId, this.targetMapObj.name, this.targetMapObj.fsg, this.selectedAddresses,
+    () => {
+      const curMarkers = this.selectedAddrMarkers;
+      this.stopMoveAddressMode();
+      // update the markers...
+      console.log(`Removing...`);
+      console.log(curMarkers);
+      console.log(this.points);
+      _.remove(this.points, (point)=> { return _.includes(curMarkers, point)});
+      console.log(this.points);
+      this.mapService.triggerUpdate();
+    });
   }
 
   startMap(mapObj: any) {
@@ -313,6 +500,9 @@ export class MapComponent extends BaseComponent {
   }
 
   getAddressTitle(addrObj: any) {
+    if (_.isUndefined(addrObj.st) || _.isEmpty(addrObj.st)) {
+      return '';
+    }
     let unit = addrObj.unit;
     if (_.isUndefined(unit) || !unit || '-9' == `${unit}`) {
       unit = ''
@@ -333,7 +523,11 @@ export class MapComponent extends BaseComponent {
   }
 
   showAddrDlg(){
-    this.getStatuses();
+    console.log(this.points);
+    if (this.mapId != 'all') {
+      this.getStatuses();
+    }
+
     console.log(`Opening dialog...`);
     if (this.addrDlg) {
       this.closeAddrDlg();
@@ -351,9 +545,18 @@ export class MapComponent extends BaseComponent {
     this.addrDlg = null;
   }
 
+  resetEditMode() {
+    if (this.mapId == 'all') {
+      this.setEditingAddress();
+    } else {
+      this.setEditingStatus();
+    }
+  }
+
   cancelAddrDlg() {
     this.selectedAddObj = null;
     this.closeAddrDlg();
+    this.resetEditMode();
   }
 
   showCurrentLoc() {

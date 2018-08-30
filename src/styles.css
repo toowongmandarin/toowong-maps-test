@@ -56,3 +56,12 @@ table, th, td {
 .radio-button {
   margin: 5px;
 }
+
+.address-edit-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.address-edit-container > * {
+  width: 100%;
+}

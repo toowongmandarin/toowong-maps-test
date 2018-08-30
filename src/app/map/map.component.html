@@ -1,9 +1,17 @@
 <mat-toolbar [ngClass]="'bgc-blue-grey-900 whiteText marginTopBottom-2'">
   <span><h3>{{title}}</h3></span>
   <span class="fill-remaining-space"></span>
-
   <!-- <span><button mat-mini-fab (click)="startMap()" *ngIf="currentMap" style="margin-right: 10px;"><mat-icon>play_arrow</mat-icon></button></span> -->
   <span>
+    <button *ngIf="mapId != 'all' && isUpdater() && !isEditModeMoveAddress()" mat-mini-fab (click)="addNewAddressMode()" style="margin-right: 5px;" >
+      <mat-icon>add_location</mat-icon>
+    </button>
+    <button *ngIf="mapId != 'all' && isUpdater() && !isEditModeMoveAddress() && !mapStarted" mat-mini-fab (click)="startMoveAddressMode()" style="margin-right: 5px;" >
+      <mat-icon>transform</mat-icon>
+    </button>
+    <button *ngIf="isUpdater() && isEditModeMoveAddress()" mat-mini-fab (click)="stopMoveAddressMode()" style="margin-right: 5px;" >
+      <mat-icon>cancel</mat-icon>
+    </button>
     <button mat-mini-fab (click)="toggleShowLocation()" style="margin-right: 5px;" >
       <mat-icon *ngIf="!showLocation">location_disabled</mat-icon>
       <mat-icon *ngIf="showLocation && !locationSearching">my_location</mat-icon>
@@ -28,10 +36,39 @@
       <span>Home</span></a>
   </mat-menu>
 </mat-toolbar>
+<mat-card *ngIf="isEditModeMoveAddress() && this.selectedAddresses.length > 0">
+  <mat-card-title>Move Address(es)</mat-card-title>
+  <mat-card-content>
+    <p>
+      <mat-chip-list selectable="false">
+        <mat-chip *ngFor="let addr of selectedAddresses">{{ getAddressTitle(addr) }} </mat-chip>
+      </mat-chip-list>
+    </p>
+    <p>
+      <mat-form-field>
+        <input matInput placeholder="Move to Map ID" name="findMapId" [(ngModel)]="findMapId" required>
+      </mat-form-field>
+      <button mat-mini-fab (click)="findTargetMap()" style="margin-right: 5px;">
+        <mat-icon>search</mat-icon>
+      </button>
+    </p>
+    <p>
+      <span *ngIf="targetMapObj"> Moving to map: {{ targetMapObj.terId }} - {{ targetMapObj.name }} </span>
+    </p>
+  </mat-card-content>
+  <mat-card-actions>
+    <button [disabled]="!targetMapObj" mat-mini-fab (click)="moveSelectedAddresses()" style="margin-right: 5px;" >
+      <mat-icon>save</mat-icon>
+    </button>
+    <button mat-mini-fab (click)="stopMoveAddressMode()" style="margin-right: 5px;" >
+      <mat-icon>cancel</mat-icon>
+    </button>
+  </mat-card-actions>
+</mat-card>
 <!-- <mat-toolbar [ngClass]="'bgc-yellow-100 marginTopBottom-2'" *ngIf="isAdmin()">
   <span><mat-button-toggle style="margin-right: 10px;" (change)="toggleShowInfo($event)"><mat-icon>info</mat-icon></mat-button-toggle></span>
   <span class="fill-remaining-space"></span>
 </mat-toolbar> -->
 <agm-map [latitude]="centerLat" [longitude]="centerLng" [zoom]="zoom" [ngStyle]="{'height': height}">
-  <marker-cluster [onAddLocMarker]="onAddLocMarker" [onFit]="onFit" [minimumClusterSize]="minimumClusterSize" [onAddressClick]="onAddressClick" [onUpdate]="mapService.onUpdate" [onSetShowClusterInfo]="onToggleShowInfo" [points]="points" ></marker-cluster>
+  <marker-cluster #markerCluster [onAddLocMarker]="onAddLocMarker" [onFit]="onFit" [minimumClusterSize]="minimumClusterSize" [onAddressClick]="onAddressClick" [onUpdate]="mapService.onUpdate" [onSetShowClusterInfo]="onToggleShowInfo" [points]="points" ></marker-cluster>
 </agm-map>

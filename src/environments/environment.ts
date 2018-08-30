@@ -18,9 +18,11 @@ export const environment = {
     messagingSenderId: "570900012219"
   },
   version: {
-    current: '2.86',
-    list: ['2.86','2.85', '2.84','2.83', '2.82', '2.8.1','2.8', '2.7.1', '2.7'],
+    current: '2.88',
+    list: ['2.88', '2.87', '2.86','2.85', '2.84','2.83', '2.82', '2.8.1','2.8', '2.7.1', '2.7'],
     details: {
+      '2.88': 'Added more updater features',
+      '2.87': 'Fixed status issue',
       '2.86': 'Improved in-app map links, search maps are no longer limited to being visited twice, and are now processed semi-automatically. Added address queues.',
       '2.85': 'Supports language surveys when marking addresses as "Done".',
       '2.84': 'Allowed setting of ownership on started maps. Added tag for personal territories. Added notes field for map updaters.',

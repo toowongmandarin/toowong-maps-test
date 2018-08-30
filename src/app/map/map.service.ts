@@ -122,11 +122,14 @@ export class Map {
         _.forEach(mapService.addrStatuses, stat => {
          if (stat.val != 5 && stat.val != 7) {
            // skip not at home 2 and not at home 3 for search maps
-           if (!this.mapObj.search && (stat.val == 10 || stat.val == 4) ) {
+           if (this.mapObj.search && (stat.val == 10 || stat.val == 4) ) {
               return true;
            } else
            if (stat.val == 3 && this.mapObj.search) {
              stat.label = "Not at Home";
+           } else
+           if (stat.val == 10) {
+             return true;
            }
            addrStatuses.push(stat);
          }
@@ -470,12 +473,13 @@ export class MapService {
                 marker.modalMode = modalMode;
 
               } else {
-                marker.url = `${mapBaseUrl}/maps/detail/${mapId}`;
+                marker.url = `/map/${mapId}`;
                 marker.infoWindowStr = `
-                                          <div>Address: ${addObj.unit != -9 ? 'Unit ' + addObj.unit + ',' : ''} ${addObj.hnum} ${addObj.st}, ${addObj.burb}</div>
+                                          <div>Address: ${addObj.unit == -9 || _.isEmpty(addObj.unit) ? '' : 'Unit ' + addObj.unit } ${addObj.hnum} ${addObj.st}, ${addObj.burb}</div>
                                           <div>Map: <a href='${marker.url}' target='_blank'>${mapObj.terId} - ${mapObj.name}</a></div>
                                           <div>FSG: ${mapObj.fsg}</div>
                                         `;
+
                 marker.markerIdx = idx;
               }
 
@@ -747,6 +751,57 @@ export class MapService {
     this.db.database.ref().update(updateObj);
   }
 
+  saveAddr(addrUpdates:any[], currentMap=null, targetMap=null, cb=null) {
+    const updateObj: any = {};
+    _.each(addrUpdates, (addrUpdate)=> {
+      let key = null;
+      if (_.isString(addrUpdate) || _.isNumber(addrUpdate)) {
+        if (currentMap && targetMap) {
+          const fromMapId = currentMap.id;
+          const toMapId = targetMap.id;
+          const addrPath = `/addresses/${key}`;
+          updateObj[`${addrPath}/terId`] = currentMap.mapObj.terId;
+          updateObj[`${addrPath}/mapId`] = toMapId;
+          updateObj[`${addrPath}/map`] = targetMap.mapObj.name;
+          updateObj[`/maps/${toMapId}/addresses/${key}`] = key;
+          updateObj[`/maps/${fromMapId}/addresses/${key}`] = null;
+        }
+      } else {
+        key = addrUpdate.addId;
+        if (_.isUndefined(key)) {
+          key = this.metadata.ids.addId;
+          this.metadata.ids.addId++;
+          updateObj[`/metadata/ids/addId`] = this.metadata.ids.addId;
+        }
+        const addrPath = `/addresses/${key}`;
+        updateObj[`${addrPath}/unit`] = this.getValueEmptyIfUndefined(addrUpdate.unit);
+        updateObj[`${addrPath}/hnum`] = this.getValueEmptyIfUndefined(addrUpdate.hnum);
+        updateObj[`${addrPath}/st`] = this.getValueEmptyIfUndefined(addrUpdate.st);
+        updateObj[`${addrPath}/lSt`] = this.getValueEmptyIfUndefined(_.toLower(addrUpdate.st));
+        updateObj[`${addrPath}/burb`] = this.getValueEmptyIfUndefined(addrUpdate.burb);
+        updateObj[`${addrPath}/pcode`] = this.getValueEmptyIfUndefined(addrUpdate.pcode);
+        updateObj[`${addrPath}/tel`] = this.getValueEmptyIfUndefined(addrUpdate.tel);
+        updateObj[`${addrPath}/clat`] = this.getValueEmptyIfUndefined(addrUpdate.clat);
+        updateObj[`${addrPath}/clong`] = this.getValueEmptyIfUndefined(addrUpdate.clong);
+        if (currentMap) {
+          const mapId = currentMap.id;
+          updateObj[`${addrPath}/terId`] = currentMap.mapObj.terId;
+          updateObj[`${addrPath}/mapId`] = mapId;
+          updateObj[`${addrPath}/map`] = currentMap.mapObj.name;
+          updateObj[`/maps/${mapId}/addresses/${key}`] = key;
+        }
+      }
+    });
+    console.log(updateObj);
+    this.db.database.ref().update(updateObj).then(()=> {
+      if (cb) cb();
+    });
+  }
+
+  getValueEmptyIfUndefined(val) {
+    return _.isUndefined(val) ? '' : val;
+  }
+
   updateAddrStat(mapId, addId, status, user, cb=null) {
     const updateObj: any = {};
     const nhData: any = {};
@@ -870,7 +925,22 @@ export class MapService {
     }
   }
 
-  findByTerm(path: string, term:any, param:any, isExactSearch:boolean) {
+  findByTerm(path: string, term:any, param:any, isExactSearch:boolean, cb) {
+    const ref = this.db.database.ref();
+    ref.child(path).orderByChild(term).equalTo(param).on('value', (snap) => {
+      if (!snap.val()) {
+        if (!isExactSearch) {
+          // try again...
+          ref.child(path).orderByChild(term).equalTo(_.toInteger(param)).on('value', (snap2) => {
+            cb(snap2.val());
+          });
+        } else {
+          cb(snap.val());
+        }
+      } else {
+        cb(snap.val());
+      }
+    });
     // const ref = this.db.database.ref(path);
     // var searchRes = [];
     // const queryObservable = this
@@ -913,4 +983,22 @@ export class MapService {
     });
   }
 
+  findByTerId(terId, cb) {
+    this.findByTerm('/maps/', 'terId', terId, false, cb);
+  }
+
+  moveAddress(fromMapId, toMapId, toTerId, toMapName, fsg, addresses, cb) {
+    const updateObj = {};
+    _.each(addresses, (addr)=> {
+      updateObj[`/maps/${fromMapId}/addresses/${addr.addId}`] = null;
+      updateObj[`/maps/${toMapId}/addresses/${addr.addId}`] = addr.addId;
+      updateObj[`/addresses/${addr.addId}/mapId`] = toTerId;
+      updateObj[`/addresses/${addr.addId}/map`] = toMapName;
+      updateObj[`/addresses/${addr.addId}/fsg`] = fsg;
+    });
+    console.log(updateObj);
+    this.db.database.ref().update(updateObj).then(()=> {
+      if (cb) cb();
+    });
+  }
 }

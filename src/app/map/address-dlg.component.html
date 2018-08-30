@@ -1,35 +1,87 @@
-<form name='addrForm'>
+<form name='addrForm' #addrForm="ngForm">
   <div mat-dialog-content>
-    <div flex="" layout="row" layout-align="center center" style="margin-top:5px;">
-      <button *ngIf="data.consumer.currentGmapUrl && data.consumer.mapStarted" mat-fab (click)="data.consumer.saveStatus()" style="margin-right:5px;"><mat-icon>save</mat-icon></button>
-      <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" mat-fab style="margin-right:5px;"><mat-icon svgIcon="google-map"></mat-icon></a>
-      <a *ngIf="!data.consumer.hasMultiAdds()" href="{{ data.consumer.currentFeedbackUrl }}" target="_blank" mat-fab style="margin-right:5px;"><mat-icon svgIcon="edit-address"></mat-icon></a>
-      <button mat-fab (click)="data.consumer.cancelAddrDlg()"><mat-icon>cancel</mat-icon></button>
-    </div>
-    <mat-card *ngIf="data.consumer.mapStarted">
-      <mat-card-content>
-        <div><h3>{{ data.consumer.currentAddrTitle }} </h3></div>
-        <div *ngIf="data.consumer.isNotAtHome() && data.consumer.hasDetail()"><h4>Last Visited: {{ data.consumer.getLastVisited() | date:'EEE, hh:mm a, dd MMM y' }} </h4></div>
-        <div *ngIf="data.consumer.isUpdater() && data.consumer.currentAddr.addObj.tel"><h5>PH: {{ data.consumer.currentAddr.addObj.tel }}</h5></div>
-        <mat-radio-group *ngIf="!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj" class="addrstat-radio-group" name="stat" [(ngModel)]="data.consumer.selectedAddObj.status">
-          <mat-radio-button class="addrstat-radio-button" *ngFor="let stat of data.consumer.addrStatuses" [value]="stat.val">
-            {{ stat.label }}
-          </mat-radio-button>
-        </mat-radio-group>
-        <mat-list *ngIf="data.consumer.hasMultiAdds()">
-          <mat-list-item *ngFor="let addObj of data.consumer.currentAddr.addObj">
-            <button mat-raised-button color="accent" (click)="data.consumer.selectAdd(addObj)"> {{ data.consumer.getAddressTitle(addObj) }} </button>
-          </mat-list-item>
-        </mat-list>
-      </mat-card-content>
-    </mat-card>
-    <mat-card *ngIf="!data.consumer.mapStarted">
-      <mat-card-content>
-        <span><h3>{{ data.consumer.currentAddrTitle }} </h3></span>
-        <div>
-            If you are expecting to work on this map, please ask any map updaters to assign this map to an owner.
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <!-- Normal dialog -->
+    <ng-container *ngIf="data.consumer.isEditStatus()">
+      <div flex="" layout="row" layout-align="center center" style="margin-top:5px;">
+        <button *ngIf="data.consumer.currentGmapUrl && data.consumer.mapStarted" mat-fab (click)="data.consumer.saveStatus()" style="margin-right:5px;"><mat-icon>save</mat-icon></button>
+        <a *ngIf="data.consumer.currentGmapUrl" target="_blank" href="{{ data.consumer.currentGmapUrl }}" mat-fab style="margin-right:5px;"><mat-icon svgIcon="google-map"></mat-icon></a>
+        <a *ngIf="!data.consumer.hasMultiAdds() && !data.consumer.isUpdater()" href="{{ data.consumer.currentFeedbackUrl }}" target="_blank" mat-fab style="margin-right:5px;"><mat-icon svgIcon="edit-address"></mat-icon></a>
+        <button *ngIf="data.consumer.isUpdater() && !data.consumer.hasMultiAdds()" (click)="data.consumer.setEditingAddress();data.consumer.enableEditAddress()" mat-fab style="margin-right:5px;"><mat-icon svgIcon="edit-address"></mat-icon></button>
+        <button mat-fab (click)="data.consumer.cancelAddrDlg()"><mat-icon>cancel</mat-icon></button>
+      </div>
+      <mat-card *ngIf="data.consumer.mapStarted">
+        <mat-card-content>
+          <div><h3>{{ data.consumer.currentAddrTitle }} </h3></div>
+          <div *ngIf="data.consumer.isNotAtHome() && data.consumer.hasDetail()"><h4>Last Visited: {{ data.consumer.getLastVisited() | date:'EEE, hh:mm a, dd MMM y' }} </h4></div>
+          <div *ngIf="data.consumer.isUpdater() && data.consumer.currentAddr.addObj.tel"><h5>PH: {{ data.consumer.currentAddr.addObj.tel }}</h5></div>
+          <mat-radio-group *ngIf="!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj" class="addrstat-radio-group" name="stat" [(ngModel)]="data.consumer.selectedAddObj.status">
+            <mat-radio-button class="addrstat-radio-button" *ngFor="let stat of data.consumer.addrStatuses" [value]="stat.val">
+              {{ stat.label }}
+            </mat-radio-button>
+          </mat-radio-group>
+          <mat-list *ngIf="data.consumer.hasMultiAdds()">
+            <mat-list-item *ngFor="let addObj of data.consumer.currentAddr.addObj">
+              <button mat-raised-button color="accent" (click)="data.consumer.selectAdd(addObj)"> {{ data.consumer.getAddressTitle(addObj) }} </button>
+            </mat-list-item>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+      <mat-card *ngIf="!data.consumer.mapStarted">
+        <mat-card-content>
+          <span><h3>{{ data.consumer.currentAddrTitle }} </h3></span>
+          <div>
+              If you are expecting to work on this map, please ask any map updaters to assign this map to an owner.
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </ng-container>
+    <!-- Admin Edit address mode version -->
+    <ng-container *ngIf="data.consumer.isEditModeAddress()">
+      <div flex="" layout="row" layout-align="center center" style="margin-top:5px;">
+        <button mat-fab [disabled]="!addrForm.valid" (click)="data.consumer.saveAddressEdit()" style="margin-right:5px;"><mat-icon>save</mat-icon></button>
+        <button mat-fab (click)="data.consumer.cancelAddrDlg()"><mat-icon>cancel</mat-icon></button>
+      </div>
+      <mat-card>
+        <mat-card-content>
+          <mat-list *ngIf="data.consumer.hasMultiAdds()">
+            <mat-list-item *ngFor="let addObj of data.consumer.currentAddr.addObj">
+              <button mat-raised-button color="accent" (click)="data.consumer.selectAdd(addObj)"> {{ data.consumer.getAddressTitle(addObj) }} </button>
+            </mat-list-item>
+          </mat-list>
+          <!-- Address edit mode -->
+          <div class="address-edit-container" *ngIf="!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj">
+            <ng-container *ngFor="let addObj of data.consumer.selectedAddObj">
+              <span><h3><a href="/map/{{addObj.mapId}}" target="_blank">{{ data.consumer.getAddressTitle(addObj) }}</a></h3></span>
+              <mat-form-field>
+                <input matInput placeholder="Unit" name="unit" [(ngModel)]="addObj.unit">
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput placeholder="House Number" name="hnum" [(ngModel)]="addObj.hnum" required>
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput placeholder="Street" name="st" [(ngModel)]="addObj.st" required>
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput placeholder="Suburb" name="burb" [(ngModel)]="addObj.burb" required>
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput placeholder="Zipcode" name="pcode" [(ngModel)]="addObj.pcode" required>
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput placeholder="Latitude" name="clat" [(ngModel)]="addObj.clat" required>
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput placeholder="Longitude" name="clong" [(ngModel)]="addObj.clong" required>
+              </mat-form-field>
+              <mat-form-field>
+                <input matInput placeholder="Phone" name="tel" [(ngModel)]="addObj.tel">
+              </mat-form-field>
+              <mat-divider></mat-divider>
+            </ng-container>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </ng-container>
+    <!-- Move Address -->
   </div>
 </form>

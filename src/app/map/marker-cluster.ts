@@ -52,6 +52,7 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
   }
 
   public ngOnInit() {
+
     this.onUpdate.subscribe(data=> {
       this.clearMarkers();
       this.loadPoints();
@@ -157,6 +158,9 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
                 marker.addListener('click', function() {
                   infowindow.open(map, marker);
                 });
+                // marker.addListener('click', function() {
+                //   clickEmitter.emit({gmap: map, gmarker: marker, addrMarker: point});
+                // });
               }
 
               // marker.addListener('mouseout', function() {
@@ -183,6 +187,9 @@ export class MarkerClusterDirective implements OnInit, OnChanges {
 
   public clearMarkers() {
     if (this.markerCluster) {
+      _.each(this.markers, (marker) => {
+        google.maps.event.clearListeners(marker, 'click');
+      });
       this.markers = [];
       this.markerCluster.clearMarkers();
     }
