@@ -114,7 +114,15 @@ export class Map {
         });
       } else {
         addrStatuses = _.filter(mapService.addrStatuses, (stat:any) => {
-          return stat.val != 10 ? stat : false;
+          if (mapService.isNormalMode()) {
+            return stat.val != 10 ? stat : false;
+          } else {
+            if (mapService.isCampaignVisitOnce()) {
+              return (stat.val != 3 && stat.val != 4 && stat.val != 10) ? stat : false;
+            } else {
+              return (stat.val != 10) ? stat : false;
+            }
+          }
         });
       }
     } else {
@@ -137,7 +145,10 @@ export class Map {
      } else {
        // when on campaign mode remove the not-at-home
        _.forEach(mapService.addrStatuses, stat => {
-        if (stat.val != 4 && stat.val != 5 && stat.val != 7 && stat.val != 10) {
+        if (stat.val != 5 && stat.val != 7 && stat.val != 10) {
+          if (mapService.isCampaignVisitOnce() && (stat.val == 3 || stat.val == 4)) {
+            return true;
+          }
           addrStatuses.push(stat);
         }
       });
@@ -904,6 +915,10 @@ export class MapService {
 
   isNormalMode() {
     return !this.metadata.mode.campaign;
+  }
+
+  isCampaignVisitOnce() {
+    return this.metadata.mode.campaignVisitOnce;
   }
 
   enableGeolocation(onAddLocMarker) {

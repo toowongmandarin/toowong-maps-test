@@ -27,7 +27,7 @@
         <mat-chip-list selectable="false">
           <mat-chip *ngIf="map.assgnObj && map.assgnObj.started">Remaining: {{ getRemaining(map) }}</mat-chip>
           <mat-chip>Addresses: {{map.addressCount}}</mat-chip>
-          <mat-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used on: {{ map.assgnObj.lastSaved.when  | date:'dd MMM y' }} </mat-chip>
+          <mat-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used on: {{ map.assgnObj.lastSaved.when  | date:'EEEE, hh:mm a, dd MMM y' }} </mat-chip>
           <mat-chip *ngIf="map.assgnObj && map.assgnObj.lastSaved">Last used by: {{ map.assgnObj.lastSaved.name }}</mat-chip>
           <mat-chip *ngIf="map.hasOwner()">Owner: {{ map.getOwner().name}} </mat-chip>
           <mat-chip *ngIf="map.hasUsers()">Users: {{ getMapUsers(map) }}</mat-chip>

@@ -13,7 +13,7 @@
         <userinfo></userinfo>
         <span class="fill-remaining-space"></span>
         <span><a style="margin-right: 5px;" mat-mini-fab [routerLink]="['/map/all']" *ngIf="canViewAllMaps()"><mat-icon >map</mat-icon></a></span>
-        <!-- <span><a style="margin-right: 5px;" mat-mini-fab [routerLink]="['/mapadmin']" *ngIf="canViewAllMaps()"><mat-icon >edit</mat-icon></a></span> -->
+        <span><a style="margin-right: 5px;" mat-mini-fab [routerLink]="['/mapadmin']" *ngIf="canViewAllMaps()"><mat-icon >edit</mat-icon></a></span>
         <span><a href="{{ addUrl }}" target="_blank" mat-mini-fab style="margin-right: 5px;"><mat-icon svgIcon="add-address"></mat-icon></a></span>
         <span><a mat-mini-fab target="_blank" href="https://docs.google.com/document/d/1sNfzBlGop98HkbRW46PdGk0K2Hg8TLbHLkmysjLExKw/edit?usp=drive_web" ><mat-icon>help</mat-icon></a></span>
         <user-admin></user-admin>

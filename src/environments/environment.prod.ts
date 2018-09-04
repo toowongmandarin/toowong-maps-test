@@ -13,9 +13,11 @@ export const environment = {
     messagingSenderId: "232314776603"
   },
   version: {
-    current: '2.88',
-    list: ['2.88','2.87', '2.86','2.85', '2.84', '2.83', '2.82', '2.8.1', '2.8', '2.7.1', '2.7'],
+    current: '2.89.1',
+    list: ['2.89.1','2.89','2.88','2.87', '2.86','2.85', '2.84', '2.83', '2.82', '2.8.1', '2.8', '2.7.1', '2.7'],
     details: {
+      '2.89.1': 'Remove not-at-homes on campaign mode',
+      '2.89': 'Last used on chip now shows the day of the week, as well as the time.',
       '2.88': 'Added more updater features',
       '2.87': 'Fixed status issue',
       '2.86': 'Improved in-app map links, search maps are no longer limited to being visited twice, and are now processed semi-automatically. Added address queues.',
