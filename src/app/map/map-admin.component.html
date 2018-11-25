@@ -12,9 +12,9 @@
    </mat-toolbar>
 </div>
 <mat-tab-group >
-  <mat-tab label="Search">
+  <!-- <mat-tab label="Search">
     <map-search></map-search>
-  </mat-tab>
+  </mat-tab> -->
   <mat-tab label="Add Data">
     <mat-radio-group class="radio-group" [(ngModel)]="newDataType" >
       <mat-radio-button value="fsg" class="radio-button">FSG</mat-radio-button>
@@ -40,9 +40,71 @@
         </mat-select>
       </mat-form-field>
     </div>
+
     <div  style="padding: 10px;">
       <button mat-raised-button color="primary" *ngIf="newDataType != null" (click)="saveNewData()">Save</button>
       <div *ngIf="msg">{{ msg }}</div>
     </div>
   </mat-tab>
+
+  <mat-tab label="Search Address">
+    <form (ngSubmit)="searchData()">
+      <!-- <mat-radio-group class="radio-group" [(ngModel)]="searchDataType" >
+        <mat-radio-button value="address" class="radio-button">Address</mat-radio-button>
+      </mat-radio-group> -->
+
+      <div *ngIf="searchDataType == 'address'" style="padding: 10px; width:100%">
+        <mat-form-field style="width: 400px;">
+          <input matInput placeholder="Street Name (first few letters)" [(ngModel)]="stName" [ngModelOptions]="{standalone: true}" [disabled]="isBusy">
+        </mat-form-field>
+        <button type="submit" mat-raised-button color="primary" *ngIf="searchDataType != null" (click)="searchData()" [disabled]="isBusy" >Search</button>
+      </div>
+
+      <div  style="padding: 10px;">
+        <div *ngIf="msg">{{ msg }}</div>
+      </div>
+
+      <table *ngIf="searchRes && searchRes.length > 0" >
+        <thead>
+          <tr>
+            <td> Address </td>
+            <td> Suburb </td>
+            <td> Map </td>
+            <td> FSG </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let elem of searchRes">
+            <td> {{ elem.fullSt }} </td>
+            <td> {{ elem.burb }} </td>
+            <td> <a [routerLink]="['/map', elem.mapId]" target="_blank"> {{ elem.map }} </a> </td>
+            <td> {{ elem.fsg }} </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- <table mat-table [dataSource]="searchRes" class="mat-elevation-z8">
+        <ng-container matColumnDef="fullSt">
+          <th mat-header-cell *matHeaderCellDef> Address </th>
+          <td mat-cell *matCellDef="let element"> {{element.fullSt }} </td>
+        </ng-container>
+        <ng-container matColumnDef="burb">
+          <th mat-header-cell *matHeaderCellDef> Suburb </th>
+          <td mat-cell *matCellDef="let element"> {{element.burb }} </td>
+        </ng-container>
+        <ng-container matColumnDef="map">
+          <th mat-header-cell *matHeaderCellDef> Map </th>
+          <td mat-cell *matCellDef="let element"> {{element.map }} </td>
+        </ng-container>
+        <ng-container matColumnDef="fsg">
+          <th mat-header-cell *matHeaderCellDef> FSG </th>
+          <td mat-cell *matCellDef="let element"> {{element.fsg }} </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table> -->
+    </form>
+  </mat-tab>
+
 </mat-tab-group>

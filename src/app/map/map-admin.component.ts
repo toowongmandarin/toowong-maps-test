@@ -19,8 +19,15 @@ import { NotifyDlgComponent } from '../ui/home.component';
 export class MapAdminComponent extends BaseComponent {
   appTitle: string = environment.app.title;
   newDataType: string = null;
+  searchDataType: string = 'address';
+  isBusy: boolean = false;
+  searchRes: any;
+  displayedColumns = ["fullSt", "burb", "map", "fsg"];
+
   fsgName: string;
   mapName: string;
+  stName: string;
+
   msg: string;
 
   mapBin: any = {};
@@ -59,13 +66,38 @@ export class MapAdminComponent extends BaseComponent {
         this.msg = "Name already exists.";
         return;
       }
+      this.isBusy = true;
       this.mapService.addNewFsg(this.fsgName, () => {
         that.msg = "FSG Successfully Added!"
+        that.isBusy = false;
       });
     }
     if (this.newDataType == "map") {
+      this.isBusy = true;
       this.mapService.addNewMap(this.fsgName, this.mapName, false, () => {
         that.msg = "Map Successfully Added!"
+        that.isBusy = false;
+      });
+    }
+  }
+
+  searchData() {
+    this.isBusy = true;
+    this.showLoadingDialog();
+    const that = this;
+    if (this.searchDataType == "address") {
+      console.log(`Finding: ${this.stName}`);
+      this.mapService.findByStreet(this.stName, (searchRes) => {
+        console.log(searchRes);
+        this.isBusy = false;
+        const sRes = []
+        _.forOwn(searchRes, (addObj, addId)=>{
+          addObj['addId'] = addId;
+          addObj['fullSt'] = `${addObj.unit && addObj.unit != -9 ? `${addObj.unit}/` : ''} ${addObj.hnum} ${addObj.st}`
+          sRes.push(addObj)
+        });
+        this.searchRes = sRes;
+        this.hideLoadingDialog();
       });
     }
   }

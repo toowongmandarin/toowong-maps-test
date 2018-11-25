@@ -31,9 +31,14 @@
       <mat-icon svgIcon="add-address"></mat-icon>
       <span>New Address</span>
     </a>
+    <button mat-menu-item (click)="editMap()" *ngIf="isUpdater() && this.mapId != 'all'">
+      <mat-icon>edit</mat-icon>
+      <span>Edit Map</span>
+    </button>
     <a mat-menu-item [routerLink]="['/home']" >
       <mat-icon>home</mat-icon>
-      <span>Home</span></a>
+      <span>Home</span>
+    </a>
   </mat-menu>
 </mat-toolbar>
 <mat-card *ngIf="isEditModeMoveAddress() && this.selectedAddresses.length > 0">

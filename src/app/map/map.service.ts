@@ -940,11 +940,17 @@ export class MapService {
     }
   }
 
+
+
+  findByStreet(stName: string, cb) {
+    this.findByTerm('/addresses/', 'lSt', _.toLower(stName), false, cb);
+  }
+
   findByTerm(path: string, term:any, param:any, isExactSearch:boolean, cb) {
     const ref = this.db.database.ref();
-    ref.child(path).orderByChild(term).equalTo(param).on('value', (snap) => {
-      if (!snap.val()) {
-        if (!isExactSearch) {
+    if (isExactSearch) {
+      ref.child(path).orderByChild(term).equalTo(param).on('value', (snap) => {
+        if (!snap.val()) {
           // try again...
           ref.child(path).orderByChild(term).equalTo(_.toInteger(param)).on('value', (snap2) => {
             cb(snap2.val());
@@ -952,10 +958,13 @@ export class MapService {
         } else {
           cb(snap.val());
         }
-      } else {
+      });
+    } else {
+      ref.child(path).orderByChild(term).startAt(param).endAt(`${param}\uf8ff`).on('value', (snap) => {
         cb(snap.val());
-      }
-    });
+      });
+    }
+
     // const ref = this.db.database.ref(path);
     // var searchRes = [];
     // const queryObservable = this
@@ -999,7 +1008,7 @@ export class MapService {
   }
 
   findByTerId(terId, cb) {
-    this.findByTerm('/maps/', 'terId', terId, false, cb);
+    this.findByTerm('/maps/', 'terId', terId, true, cb);
   }
 
   moveAddress(fromMapId, toMapId, toTerId, toMapName, fsg, addresses, cb) {
@@ -1011,6 +1020,19 @@ export class MapService {
       updateObj[`/addresses/${addr.addId}/map`] = toMapName;
       updateObj[`/addresses/${addr.addId}/fsg`] = fsg;
     });
+    console.log(updateObj);
+    this.db.database.ref().update(updateObj).then(()=> {
+      if (cb) cb();
+    });
+  }
+
+  moveMap(mapId, mapKey, mapName, fromFsg, toFsg, cb) {
+    const updateObj = {};
+    updateObj[`/maps/${mapId}/fsg`] = toFsg;
+    updateObj[`/maps/${mapId}/name`] = mapName;
+    updateObj[`/maps/${mapId}/lName`] = _.toLower(mapName);
+    updateObj[`/fsg/${fromFsg}/${mapKey}`] = null;
+    updateObj[`/fsg/${toFsg}/${mapId}`] = mapId;
     console.log(updateObj);
     this.db.database.ref().update(updateObj).then(()=> {
       if (cb) cb();

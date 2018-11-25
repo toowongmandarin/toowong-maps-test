@@ -22,6 +22,7 @@ export class MapsListComponent extends BaseComponent {
   hasMaps: boolean = false;
   oldFsgMaps: Fsg[];
   metadata: any;
+  compMap: any;
 
   constructor(dialog: MatDialog, fireAuth: AuthService, public mapService: MapService, public winRef: WindowRef) {
     super();
@@ -133,7 +134,11 @@ export class MapsListComponent extends BaseComponent {
       if (!this.fsgMaps) {
         this.fsgMaps = fsgMaps;
       }
-
+      _.each(this.fsgMaps, (fsg) => {
+        fsg.maps = _.sortBy(fsg.maps, (map) => {
+          return _.toInteger(map.mapObj.terId)
+        });
+      });
       this.hideLoadingDialog();
     }));
   }
@@ -153,10 +158,12 @@ export class MapsListComponent extends BaseComponent {
       this.subs.push(this.mapService.getAllFsgMapsList(true).flatMap(fsgMaps => {
         _.each(fsgMaps, (fsg) => {
           fsg.computeCompleted();
+          fsg.expanded = (this.compMap ? this.compMap[fsg.fsgName].fsg.expanded : false);
         });
         this.fsgMaps = fsgMaps;
         console.log("All maps:")
         console.log(fsgMaps);
+
         return this.mapService.getUserMaps(this.fireAuth.currentUser);
       })
       .subscribe(userMaps => {
@@ -273,4 +280,16 @@ export class MapsListComponent extends BaseComponent {
     });
   }
 
+  addFsgComp(fsg, i, comp) {
+    if (!this.compMap) {
+      this.compMap = {};
+    }
+    if (!this.compMap[fsg.fsgName]) {
+      this.compMap[fsg.fsgName] = { comp: comp, fsg: fsg };
+      if (fsg.fsgName == 'Your Maps') {
+        comp.open();
+      }
+    }
+    
+  }
 }

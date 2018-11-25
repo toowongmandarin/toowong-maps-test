@@ -89,6 +89,14 @@ export class MapComponent extends BaseComponent {
   targetMapId: any = null;
   targetMapObj: any = null;
 
+  mapName: string;
+  fsgName: string;
+  fsgs: string[];
+  mapEditDlg: any;
+  mapKey: any;
+  mapBin = {};
+  mapIds = [];
+
   constructor(public mapService: MapService, dialog: MatDialog, fireAuth: AuthService, private route: ActivatedRoute, public winRef: WindowRef, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
     super();
     this.dialog = dialog;
@@ -135,14 +143,18 @@ export class MapComponent extends BaseComponent {
     // check the route...
     console.log(this.winRef.nativeWindow.innerHeight);
     this.adjustHeight();
-    this.title = 'Loading...';
-    this.subs.push(this.route.params.subscribe(params => {
-      this.mapId = params['id'];
-      this.mapService.getMetadata().subscribe(meta => {
-        this.loadMaps();
-        this.loadPreferences();
-      });
-    }));
+    if (!this.mapId) {
+      this.title = 'Loading...';
+      this.subs.push(this.route.params.subscribe(params => {
+        this.mapId = params['id'];
+        this.mapService.getMetadata().subscribe(meta => {
+          this.loadMaps();
+          this.loadPreferences();
+        });
+      }));
+    } else {
+      console.log(`Post login set up triggered, already loaded, doing nothing.`);
+    }
   }
 
   loadPreferences() {
@@ -354,10 +366,11 @@ export class MapComponent extends BaseComponent {
         return;
       }
       this.mapStarted = map.assgnObj.$exists() && !_.isEmpty(map.assgnObj.started);
+      // TODO: Check if there are any addresses that are empty
       // sort the addresses
       map.addresses = _.sortBy(map.addresses,
       [(addr) => {
-        return (_.isUndefined(addr.lSt) || _.isNull(addr.lSt) ?  addr.st.toLowerCase() : addr.lSt  );
+        return (_.isUndefined(addr.lSt) || _.isNull(addr.lSt) ? _.toLower(addr.st) : addr.lSt  );
       }, (addr) => {
         return _.toSafeInteger(addr.hnum);
       }, (addr) => {
@@ -385,7 +398,7 @@ export class MapComponent extends BaseComponent {
       }
       const fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
       const terId = this.mapService.maps[0].terId;
-      this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=${terId}&entry.1482719893=${fullName}&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=${terId}&entry.138422963=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${terId}&entry.1534052334=${fullName}&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=${terId}&entry.913416032=${fullName}`;
+      this.addUrl =  `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=${terId}&entry.1482719893=${fullName}&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=${terId}&entry.138422963=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${terId}&entry.1534052334=${fullName}&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=${terId}&entry.913416032=${fullName}`;
       // this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${this.mapService.maps[0].terId}&entry.1534052334=${fullName}`;
       this.hideLoadingDialog();
       this.triggerUpdate = true;
@@ -435,6 +448,7 @@ export class MapComponent extends BaseComponent {
         this.selectedAddrMarkers.push(this.currentAddr);
         this.lastSelectedAddress = null;
       }
+
       this.selectedAddresses = [];
       _.each(this.selectedAddrMarkers, addrMarker => {
         if (_.isArray(addrMarker.addObj)) {
@@ -637,7 +651,7 @@ export class MapComponent extends BaseComponent {
   }
 
   hasMultiAdds() {
-    return _.isArray(this.currentAddr.addObj) && !this.selectedAddObj;
+    return this.currentAddr && _.isArray(this.currentAddr.addObj) && !this.selectedAddObj;
   }
 
   selectAdd(addObj) {
@@ -730,6 +744,74 @@ export class MapComponent extends BaseComponent {
       }
     }
     return bg;
+  }
+
+  editMap() {
+    if (_.isUndefined(this.fsgs)) {
+      this.showLoadingDialog();
+      const sub = this.mapService.getAllFsgMaps(this.mapBin)
+      .flatMap((mapId:any) => {
+        return Observable.of(null);
+      })
+      .debounce(() => {
+        return Observable.interval(1000)
+      })
+      .subscribe(() => {
+        sub.unsubscribe();
+        _.forOwn(this.mapBin, (mapVal, mapId) => {
+          this.mapIds.push(mapVal);
+        });
+        this.fsgs = _.uniq(_.map(this.mapIds, (mapId) => {
+          return mapId.fsgName
+        }));
+        this.mapName = this.currentMap.mapObj.name;
+        this.fsgName = this.currentMap.mapObj.fsg;
+        this.mapKey = this.mapBin[this.mapId].mapKey;
+        this.hideLoadingDialog();
+        this.mapEditDlg = this.dialog.open(MapEditDlgComponent, {
+          data: {consumer: this},
+          disableClose: true
+        });
+      });
+    } else {
+      this.mapName = this.currentMap.mapObj.name;
+      this.fsgName = this.currentMap.mapObj.fsg;
+      this.mapKey = this.mapBin[this.mapId].mapKey;
+      this.mapEditDlg = this.dialog.open(MapEditDlgComponent, {
+        data: {consumer: this},
+        disableClose: true
+      });
+    }
+  }
+
+  saveMapEdit() {
+    this.closeMapEditDlg();
+    this.showLoadingDialog();
+    this.mapService.moveMap(this.mapId, this.mapKey, this.mapName, this.currentMap.mapObj.fsg, this.fsgName, () => {
+      this.currentMap.mapObj.fsg = this.fsgName;
+      this.currentMap.mapObj.name = this.mapName;
+      this.mapBin[this.mapId].mapKey = this.mapId;
+      this.title = `${this.currentMap.mapObj.terId} - ${this.currentMap.mapObj.name} ${this.mapService.isNormalMode() ? '' : '::Campaign'}`;
+      this.hideLoadingDialog();
+    });
+  }
+
+  closeMapEditDlg() {
+    this.mapEditDlg.close();
+  }
+}
+
+@Component({
+  selector: 'map-edit-component',
+  templateUrl: './map-edit-dlg.component.html'
+})
+export class MapEditDlgComponent {
+
+  constructor(public dialogRef: MatDialogRef<any>, @Inject(MAT_DIALOG_DATA) public data: any, iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
+    iconRegistry.addSvgIcon('google-map',
+        sanitizer.bypassSecurityTrustResourceUrl('/assets/images/google-maps.svg'));
+    iconRegistry.addSvgIcon('edit-address',
+        sanitizer.bypassSecurityTrustResourceUrl('/assets/images/edit_address.svg'));
   }
 }
 
