@@ -5628,11 +5628,11 @@ var environment = {
     production: false,
     addressFeedBackForm: 'https://docs.google.com/forms/d/e/1FAIpQLSdZYe2BmeJ_DLwW1lbvu9bcLWe7_wZ3Rs5fdaw-q4g9zfys3g/viewform',
     agm: {
-        api: 'AIzaSyD_VnDujye_oVKyUnExhT3LqETfARNIoiw'
+        api: 'AIzaSyB6EVRDfSAHTAkrx-VmXyKU7Y3qLSuD0Ag'
     },
     app: {
-        title: "Toowong Ministry Maps (TEST)",
-        mapBase: 'https://maps-toowong-test.jwapp.xyz/#'
+        title: "Toowong Ministry Maps",
+        mapBase: 'http://localhost:4200/'
     },
     firebase: {
         apiKey: "AIzaSyAQ6yor3WnBT74kyErJVotz76y9x0A4f28",
