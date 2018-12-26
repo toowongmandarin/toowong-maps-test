@@ -5626,13 +5626,13 @@ module.exports = "<mat-dialog-content>\r\n    <mat-card>\r\n      <mat-card-head
 // The file contents for the current environment will overwrite these during build.
 var environment = {
     production: false,
-    addressFeedBackForm: 'https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform',
+    addressFeedBackForm: 'https://docs.google.com/forms/d/e/1FAIpQLSdZYe2BmeJ_DLwW1lbvu9bcLWe7_wZ3Rs5fdaw-q4g9zfys3g/viewform',
     agm: {
-        api: 'AIzaSyB6EVRDfSAHTAkrx-VmXyKU7Y3qLSuD0Ag'
+        api: 'AIzaSyD_VnDujye_oVKyUnExhT3LqETfARNIoiw'
     },
     app: {
-        title: "Toowong Ministry Maps",
-        mapBase: 'http://localhost:4200/'
+        title: "Toowong Ministry Maps (TEST)",
+        mapBase: 'https://maps-toowong-test.jwapp.xyz/#'
     },
     firebase: {
         apiKey: "AIzaSyAQ6yor3WnBT74kyErJVotz76y9x0A4f28",
