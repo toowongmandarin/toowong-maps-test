@@ -183,7 +183,7 @@ var BaseComponent = (function () {
     };
     BaseComponent.prototype.login = function (creds) {
         var _this = this;
-        this.errorMsg = "";
+        this.errorMsg = '';
         console.log("BaseComponent logging in: ");
         console.log(creds);
         this.showLoadingDialog();
@@ -211,14 +211,14 @@ var BaseComponent = (function () {
 /***/ "../../../../../src/app/map/address-dlg.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<form name='addrForm' #addrForm=\"ngForm\">\r\n  <div mat-dialog-content>\r\n    <!-- Normal dialog -->\r\n    <ng-container *ngIf=\"data.consumer.isEditStatus()\">\r\n      <div flex=\"\" layout=\"row\" layout-align=\"center center\" style=\"margin-top:5px;\">\r\n        <button *ngIf=\"data.consumer.currentGmapUrl && data.consumer.mapStarted\" mat-fab (click)=\"data.consumer.saveStatus()\" style=\"margin-right:5px;\"><mat-icon>save</mat-icon></button>\r\n        <a *ngIf=\"data.consumer.currentGmapUrl\" target=\"_blank\" href=\"{{ data.consumer.currentGmapUrl }}\" mat-fab style=\"margin-right:5px;\"><mat-icon svgIcon=\"google-map\"></mat-icon></a>\r\n        <a *ngIf=\"!data.consumer.hasMultiAdds() && !data.consumer.isUpdater()\" href=\"{{ data.consumer.currentFeedbackUrl }}\" target=\"_blank\" mat-fab style=\"margin-right:5px;\"><mat-icon svgIcon=\"edit-address\"></mat-icon></a>\r\n        <button *ngIf=\"data.consumer.isUpdater() && !data.consumer.hasMultiAdds()\" (click)=\"data.consumer.setEditingAddress();data.consumer.enableEditAddress()\" mat-fab style=\"margin-right:5px;\"><mat-icon svgIcon=\"edit-address\"></mat-icon></button>\r\n        <button mat-fab (click)=\"data.consumer.cancelAddrDlg()\"><mat-icon>cancel</mat-icon></button>\r\n      </div>\r\n      <mat-card *ngIf=\"data.consumer.mapStarted\">\r\n        <mat-card-content>\r\n          <div><h3>{{ data.consumer.currentAddrTitle }} </h3></div>\r\n          <div *ngIf=\"data.consumer.isNotAtHome() && data.consumer.hasDetail()\"><h4>Last Visited: {{ data.consumer.getLastVisited() | date:'EEE, hh:mm a, dd MMM y' }} </h4></div>\r\n          <div *ngIf=\"data.consumer.isUpdater() && data.consumer.currentAddr.addObj.tel\"><h5>PH: {{ data.consumer.currentAddr.addObj.tel }}</h5></div>\r\n          <mat-radio-group *ngIf=\"!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj\" class=\"addrstat-radio-group\" name=\"stat\" [(ngModel)]=\"data.consumer.selectedAddObj.status\">\r\n            <mat-radio-button class=\"addrstat-radio-button\" *ngFor=\"let stat of data.consumer.addrStatuses\" [value]=\"stat.val\">\r\n              {{ stat.label }}\r\n            </mat-radio-button>\r\n          </mat-radio-group>\r\n          <mat-list *ngIf=\"data.consumer.hasMultiAdds()\">\r\n            <mat-list-item *ngFor=\"let addObj of data.consumer.currentAddr.addObj\">\r\n              <button mat-raised-button color=\"accent\" (click)=\"data.consumer.selectAdd(addObj)\"> {{ data.consumer.getAddressTitle(addObj) }} </button>\r\n            </mat-list-item>\r\n          </mat-list>\r\n        </mat-card-content>\r\n      </mat-card>\r\n      <mat-card *ngIf=\"!data.consumer.mapStarted\">\r\n        <mat-card-content>\r\n          <span><h3>{{ data.consumer.currentAddrTitle }} </h3></span>\r\n          <div>\r\n              If you are expecting to work on this map, please ask any map updaters to assign this map to an owner.\r\n          </div>\r\n        </mat-card-content>\r\n      </mat-card>\r\n    </ng-container>\r\n    <!-- Admin Edit address mode version -->\r\n    <ng-container *ngIf=\"data.consumer.isEditModeAddress()\">\r\n      <div flex=\"\" layout=\"row\" layout-align=\"center center\" style=\"margin-top:5px;\">\r\n        <button mat-fab [disabled]=\"!addrForm.valid\" (click)=\"data.consumer.saveAddressEdit()\" style=\"margin-right:5px;\"><mat-icon>save</mat-icon></button>\r\n        <button mat-fab (click)=\"data.consumer.cancelAddrDlg()\"><mat-icon>cancel</mat-icon></button>\r\n      </div>\r\n      <mat-card>\r\n        <mat-card-content>\r\n          <mat-list *ngIf=\"data.consumer.hasMultiAdds()\">\r\n            <mat-list-item *ngFor=\"let addObj of data.consumer.currentAddr.addObj\">\r\n              <button mat-raised-button color=\"accent\" (click)=\"data.consumer.selectAdd(addObj)\"> {{ data.consumer.getAddressTitle(addObj) }} </button>\r\n            </mat-list-item>\r\n          </mat-list>\r\n          <!-- Address edit mode -->\r\n          <div class=\"address-edit-container\" *ngIf=\"!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj\">\r\n            <ng-container *ngFor=\"let addObj of data.consumer.selectedAddObj\">\r\n              <span><h3><a href=\"/map/{{addObj.mapId}}\" target=\"_blank\">{{ data.consumer.getAddressTitle(addObj) }}</a></h3></span>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Unit\" name=\"unit\" [(ngModel)]=\"addObj.unit\">\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"House Number\" name=\"hnum\" [(ngModel)]=\"addObj.hnum\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Street\" name=\"st\" [(ngModel)]=\"addObj.st\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Suburb\" name=\"burb\" [(ngModel)]=\"addObj.burb\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Zipcode\" name=\"pcode\" [(ngModel)]=\"addObj.pcode\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Latitude\" name=\"clat\" [(ngModel)]=\"addObj.clat\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Longitude\" name=\"clong\" [(ngModel)]=\"addObj.clong\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Phone\" name=\"tel\" [(ngModel)]=\"addObj.tel\">\r\n              </mat-form-field>\r\n              <mat-divider></mat-divider>\r\n            </ng-container>\r\n          </div>\r\n        </mat-card-content>\r\n      </mat-card>\r\n    </ng-container>\r\n    <!-- Move Address -->\r\n  </div>\r\n</form>\r\n"
+module.exports = "<form name='addrForm' #addrForm=\"ngForm\">\r\n  <div mat-dialog-content>\r\n    <!-- Normal dialog -->\r\n    <ng-container *ngIf=\"data.consumer.isEditStatus()\">\r\n      <div flex=\"\" layout=\"row\" layout-align=\"center center\" style=\"margin-top:5px;\">\r\n        <button *ngIf=\"data.consumer.currentGmapUrl && data.consumer.mapStarted\" mat-fab (click)=\"data.consumer.saveStatus()\" style=\"margin-right:5px;\"><mat-icon>save</mat-icon></button>\r\n        <a *ngIf=\"data.consumer.currentGmapUrl\" target=\"_blank\" href=\"{{ data.consumer.currentGmapUrl }}\" mat-fab style=\"margin-right:5px;\"><mat-icon svgIcon=\"google-map\"></mat-icon></a>\r\n        <a *ngIf=\"!data.consumer.hasMultiAdds() && !data.consumer.isUpdater()\" href=\"{{ data.consumer.currentFeedbackUrl }}\" target=\"_blank\" mat-fab style=\"margin-right:5px;\"><mat-icon svgIcon=\"edit-address\"></mat-icon></a>\r\n        <button *ngIf=\"data.consumer.isUpdater() && !data.consumer.hasMultiAdds()\" (click)=\"data.consumer.setEditingAddress();data.consumer.enableEditAddress()\" mat-fab style=\"margin-right:5px;\"><mat-icon svgIcon=\"edit-address\"></mat-icon></button>\r\n        <button mat-fab (click)=\"data.consumer.cancelAddrDlg()\"><mat-icon>cancel</mat-icon></button>\r\n      </div>\r\n      <mat-card *ngIf=\"data.consumer.mapStarted\">\r\n        <mat-card-content>\r\n          <div><h3>{{ data.consumer.currentAddrTitle }} </h3></div>\r\n          <div *ngIf=\"data.consumer.isNotAtHome() && data.consumer.hasDetail()\"><h4>Last Visited: {{ data.consumer.getLastVisited() | date:'EEE, hh:mm a, dd MMM y' }} </h4></div>\r\n          <div *ngIf=\"data.consumer.isUpdater() && data.consumer.currentAddr.addObj.tel\"><h5>PH: {{ data.consumer.currentAddr.addObj.tel }}</h5></div>\r\n          <mat-radio-group *ngIf=\"!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj\" class=\"addrstat-radio-group\" name=\"stat\" [(ngModel)]=\"data.consumer.selectedAddObj.status\">\r\n            <mat-radio-button class=\"addrstat-radio-button\" *ngFor=\"let stat of data.consumer.addrStatuses\" [value]=\"stat.val\">\r\n              {{ stat.label }}\r\n            </mat-radio-button>\r\n          </mat-radio-group>\r\n          <mat-list *ngIf=\"data.consumer.hasMultiAdds()\">\r\n            <mat-list-item *ngFor=\"let addObj of data.consumer.currentAddr.addObj\">\r\n              <button mat-raised-button [style.color]=\"data.consumer.getStatusFgColor(addObj)\" [style.background-color]=\"data.consumer.getStatusBgColor(addObj)\" (click)=\"data.consumer.selectAdd(addObj)\"> {{ data.consumer.getAddressTitle(addObj) }} </button>\r\n            </mat-list-item>\r\n          </mat-list>\r\n        </mat-card-content>\r\n      </mat-card>\r\n      <mat-card *ngIf=\"!data.consumer.mapStarted\">\r\n        <mat-card-content>\r\n          <span><h3>{{ data.consumer.currentAddrTitle }} </h3></span>\r\n          <div *ngIf=\"!data.consumer.isUpdater()\">\r\n              If you are expecting to work on this map, please ask any map updaters to assign this map to an owner.\r\n          </div>\r\n          <mat-list *ngIf=\"data.consumer.isUpdater() && data.consumer.hasMultiAdds()\">\r\n            <mat-list-item *ngFor=\"let addObj of data.consumer.currentAddr.addObj\">\r\n              <button mat-raised-button color=\"accent\" (click)=\"data.consumer.setEditingAddress(); data.consumer.selectAdd(addObj);\"> {{ data.consumer.getAddressTitle(addObj) }} </button>\r\n            </mat-list-item>\r\n          </mat-list>\r\n        </mat-card-content>\r\n      </mat-card>\r\n    </ng-container>\r\n    <!-- Admin Edit address mode version -->\r\n    <ng-container *ngIf=\"data.consumer.isEditModeAddress()\">\r\n      <div flex=\"\" layout=\"row\" layout-align=\"center center\" style=\"margin-top:5px;\">\r\n        <button mat-fab [disabled]=\"!addrForm.valid\" (click)=\"data.consumer.saveAddressEdit()\" style=\"margin-right:5px;\"><mat-icon>save</mat-icon></button>\r\n        <button mat-fab (click)=\"data.consumer.cancelAddrDlg()\"><mat-icon>cancel</mat-icon></button>\r\n      </div>\r\n      <mat-card>\r\n        <mat-card-content>\r\n          <!-- Address edit mode -->\r\n          <div class=\"address-edit-container\" *ngIf=\"!data.consumer.hasMultiAdds() && data.consumer.selectedAddObj; let addObj\">\r\n            <ng-container *ngIf=\"data.consumer.selectedAddObj; let addObj\">\r\n              <span><h3><a href=\"/map/{{addObj.mapId}}\" target=\"_blank\">{{ data.consumer.getAddressTitle(addObj) }}</a></h3></span>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Unit\" name=\"unit\" [(ngModel)]=\"addObj.unit\">\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"House Number\" name=\"hnum\" [(ngModel)]=\"addObj.hnum\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Street\" name=\"st\" [(ngModel)]=\"addObj.st\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Suburb\" name=\"burb\" [(ngModel)]=\"addObj.burb\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Zipcode\" name=\"pcode\" [(ngModel)]=\"addObj.pcode\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Latitude\" name=\"clat\" [(ngModel)]=\"addObj.clat\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Longitude\" name=\"clong\" [(ngModel)]=\"addObj.clong\" required>\r\n              </mat-form-field>\r\n              <mat-form-field>\r\n                <input matInput placeholder=\"Phone\" name=\"tel\" [(ngModel)]=\"addObj.tel\">\r\n              </mat-form-field>\r\n              <mat-divider></mat-divider>\r\n            </ng-container>\r\n          </div>\r\n        </mat-card-content>\r\n      </mat-card>\r\n    </ng-container>\r\n    <!-- Move Address -->\r\n  </div>\r\n</form>\r\n"
 
 /***/ }),
 
 /***/ "../../../../../src/app/map/addresslist-dlg.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div mat-dialog-content>\r\n\r\n      <span><h3>{{ data.consumer.title }} </h3></span>\r\n      <table width=\"100%\">\r\n        <tr>\r\n            <td><strong>Address</strong></td>\r\n            <td width=\"110px;\"><strong>Status</strong></td>\r\n        </tr>\r\n        <tr *ngFor=\"let addObj of data.consumer.currentAddrList\">\r\n          <td >\r\n            <a target=\"_blank\" href=\"{{ data.consumer.getGmapUrl(addObj) }}\" >\r\n              {{ data.consumer.getAddressTitle(addObj) }}\r\n            </a>\r\n          </td>\r\n          <td >\r\n            <mat-select [(ngModel)]=\"addObj.status\" [style.font-weight]=\"'bold'\" [style.background-color]=\"data.consumer.getStatusBgColor(addObj)\">\r\n              <ng-container *ngFor=\"let stat of data.consumer.addrStatuses\">\r\n                <mat-option [value]=\"stat.val\" >{{stat.label}}</mat-option>\r\n              </ng-container>\r\n            </mat-select>\r\n          </td>\r\n        </tr>\r\n      </table>\r\n      <br/>\r\n      <button mat-fab *ngIf=\"data.consumer.mapStarted\" (click)=\"data.consumer.saveStatuses()\" ><mat-icon>save</mat-icon></button>\r\n      <button mat-fab (click)=\"data.consumer.closeAddrListDlg()\"><mat-icon>cancel</mat-icon></button>\r\n</div>\r\n"
+module.exports = "<div mat-dialog-content>\r\n\r\n      <span><h3>{{ data.consumer.title }} </h3></span>\r\n      <table width=\"100%\">\r\n        <tr>\r\n            <td><strong>Address</strong></td>\r\n            <td width=\"110px;\" *ngIf=\"data.consumer.mapStarted\"><strong>Status</strong></td>\r\n            <td *ngIf=\"data.consumer.fireAuth.currentUser.isAdmin() || data.consumer.fireAuth.currentUser.isUpdater()\">\r\n              <strong>Actions</strong>\r\n            </td>\r\n        </tr>\r\n        <tr *ngFor=\"let addObj of data.consumer.currentAddrList\">\r\n          <td >\r\n            <a target=\"_blank\" href=\"{{ data.consumer.getGmapUrl(addObj) }}\" >\r\n              {{ data.consumer.getAddressTitle(addObj) }}\r\n            </a>\r\n          </td>\r\n          <td *ngIf=\"data.consumer.mapStarted\">\r\n            <mat-select [(ngModel)]=\"addObj.status\" [style.font-weight]=\"'bold'\" [style.background-color]=\"data.consumer.getStatusBgColor(addObj)\">\r\n              <ng-container *ngFor=\"let stat of data.consumer.addrStatuses\">\r\n                <mat-option [value]=\"stat.val\" >{{stat.label}}</mat-option>\r\n              </ng-container>\r\n            </mat-select>\r\n          </td>\r\n          <td *ngIf=\"data.consumer.fireAuth.currentUser.isAdmin() || data.consumer.fireAuth.currentUser.isUpdater()\">\r\n            <a href=\"#\" (click)=\"data.consumer.editAddress($event, addObj)\">Edit</a>\r\n            &nbsp;\r\n            <a href=\"#\" (click)=\"data.consumer.deleteAddress($event, addObj)\">Delete</a>\r\n          </td>\r\n        </tr>\r\n      </table>\r\n      <br/>\r\n      <button mat-fab *ngIf=\"data.consumer.mapStarted\" (click)=\"data.consumer.saveStatuses()\" ><mat-icon>save</mat-icon></button>\r\n      <button mat-fab (click)=\"data.consumer.closeAddrListDlg()\"><mat-icon>cancel</mat-icon></button>\r\n</div>\r\n"
 
 /***/ }),
 
@@ -320,7 +320,7 @@ var MapAdminComponent = (function (_super) {
         _this.newDataType = null;
         _this.searchDataType = 'address';
         _this.isBusy = false;
-        _this.displayedColumns = ["fullSt", "burb", "map", "fsg"];
+        _this.displayedColumns = ['fullSt', 'burb', 'map', 'fsg'];
         _this.mapBin = {};
         _this.mapIds = [];
         _this.dialog = dialog;
@@ -348,21 +348,21 @@ var MapAdminComponent = (function (_super) {
     MapAdminComponent.prototype.saveNewData = function () {
         var _this = this;
         var that = this;
-        if (this.newDataType == "fsg") {
+        if (this.newDataType == 'fsg') {
             if (__WEBPACK_IMPORTED_MODULE_5_lodash__["find"](this.fsgs, function (fsg) { return fsg == _this.fsgName; })) {
-                this.msg = "Name already exists.";
+                this.msg = 'Name already exists.';
                 return;
             }
             this.isBusy = true;
             this.mapService.addNewFsg(this.fsgName, function () {
-                that.msg = "FSG Successfully Added!";
+                that.msg = 'FSG Successfully Added!';
                 that.isBusy = false;
             });
         }
-        if (this.newDataType == "map") {
+        if (this.newDataType == 'map') {
             this.isBusy = true;
             this.mapService.addNewMap(this.fsgName, this.mapName, false, function () {
-                that.msg = "Map Successfully Added!";
+                that.msg = 'Map Successfully Added!';
                 that.isBusy = false;
             });
         }
@@ -372,7 +372,7 @@ var MapAdminComponent = (function (_super) {
         this.isBusy = true;
         this.showLoadingDialog();
         var that = this;
-        if (this.searchDataType == "address") {
+        if (this.searchDataType == 'address') {
             console.log("Finding: " + this.stName);
             this.mapService.findByStreet(this.stName, function (searchRes) {
                 console.log(searchRes);
@@ -714,7 +714,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/map/map.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<mat-toolbar [ngClass]=\"'bgc-blue-grey-900 whiteText marginTopBottom-2'\">\r\n  <span><h3>{{title}}</h3></span>\r\n  <span class=\"fill-remaining-space\"></span>\r\n  <!-- <span><button mat-mini-fab (click)=\"startMap()\" *ngIf=\"currentMap\" style=\"margin-right: 10px;\"><mat-icon>play_arrow</mat-icon></button></span> -->\r\n  <span>\r\n    <button *ngIf=\"mapId != 'all' && isUpdater() && !isEditModeMoveAddress()\" mat-mini-fab (click)=\"addNewAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>add_location</mat-icon>\r\n    </button>\r\n    <button *ngIf=\"mapId != 'all' && isUpdater() && !isEditModeMoveAddress() && !mapStarted\" mat-mini-fab (click)=\"startMoveAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>transform</mat-icon>\r\n    </button>\r\n    <button *ngIf=\"isUpdater() && isEditModeMoveAddress()\" mat-mini-fab (click)=\"stopMoveAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>cancel</mat-icon>\r\n    </button>\r\n    <button mat-mini-fab (click)=\"toggleShowLocation()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon *ngIf=\"!showLocation\">location_disabled</mat-icon>\r\n      <mat-icon *ngIf=\"showLocation && !locationSearching\">my_location</mat-icon>\r\n      <mat-icon *ngIf=\"showLocation && locationSearching\">location_searching</mat-icon>\r\n    </button>\r\n  </span>\r\n  <span><button mat-mini-fab (click)=\"fitMap()\" ><mat-icon svgIcon=\"fit-map\"></mat-icon></button></span>\r\n  <button mat-icon-button [matMenuTriggerFor]=\"menu\" >\r\n    <mat-icon>more_vert</mat-icon>\r\n  </button>\r\n  <mat-menu #menu=\"matMenu\" >\r\n    <button mat-menu-item (click)=\"viewList()\">\r\n      <mat-icon>view_list</mat-icon>\r\n      <span>List View</span>\r\n    </button>\r\n    <a href=\"{{ addUrl }}\" target=\"_blank\" mat-menu-item>\r\n      <mat-icon svgIcon=\"add-address\"></mat-icon>\r\n      <span>New Address</span>\r\n    </a>\r\n    <button mat-menu-item (click)=\"editMap()\" *ngIf=\"isUpdater() && this.mapId != 'all'\">\r\n      <mat-icon>edit</mat-icon>\r\n      <span>Edit Map</span>\r\n    </button>\r\n    <a mat-menu-item [routerLink]=\"['/home']\" >\r\n      <mat-icon>home</mat-icon>\r\n      <span>Home</span>\r\n    </a>\r\n  </mat-menu>\r\n</mat-toolbar>\r\n<mat-card *ngIf=\"isEditModeMoveAddress() && this.selectedAddresses.length > 0\">\r\n  <mat-card-title>Move Address(es)</mat-card-title>\r\n  <mat-card-content>\r\n    <p>\r\n      <mat-chip-list selectable=\"false\">\r\n        <mat-chip *ngFor=\"let addr of selectedAddresses\">{{ getAddressTitle(addr) }} </mat-chip>\r\n      </mat-chip-list>\r\n    </p>\r\n    <p>\r\n      <mat-form-field>\r\n        <input matInput placeholder=\"Move to Map ID\" name=\"findMapId\" [(ngModel)]=\"findMapId\" required>\r\n      </mat-form-field>\r\n      <button mat-mini-fab (click)=\"findTargetMap()\" style=\"margin-right: 5px;\">\r\n        <mat-icon>search</mat-icon>\r\n      </button>\r\n    </p>\r\n    <p>\r\n      <span *ngIf=\"targetMapObj\"> Moving to map: {{ targetMapObj.terId }} - {{ targetMapObj.name }} </span>\r\n    </p>\r\n  </mat-card-content>\r\n  <mat-card-actions>\r\n    <button [disabled]=\"!targetMapObj\" mat-mini-fab (click)=\"moveSelectedAddresses()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>save</mat-icon>\r\n    </button>\r\n    <button mat-mini-fab (click)=\"stopMoveAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>cancel</mat-icon>\r\n    </button>\r\n  </mat-card-actions>\r\n</mat-card>\r\n<!-- <mat-toolbar [ngClass]=\"'bgc-yellow-100 marginTopBottom-2'\" *ngIf=\"isAdmin()\">\r\n  <span><mat-button-toggle style=\"margin-right: 10px;\" (change)=\"toggleShowInfo($event)\"><mat-icon>info</mat-icon></mat-button-toggle></span>\r\n  <span class=\"fill-remaining-space\"></span>\r\n</mat-toolbar> -->\r\n<agm-map [latitude]=\"centerLat\" [longitude]=\"centerLng\" [zoom]=\"zoom\" [ngStyle]=\"{'height': height}\">\r\n  <marker-cluster #markerCluster [onAddLocMarker]=\"onAddLocMarker\" [onFit]=\"onFit\" [minimumClusterSize]=\"minimumClusterSize\" [onAddressClick]=\"onAddressClick\" [onUpdate]=\"mapService.onUpdate\" [onSetShowClusterInfo]=\"onToggleShowInfo\" [points]=\"points\" ></marker-cluster>\r\n</agm-map>\r\n"
+module.exports = "<mat-toolbar [ngClass]=\"'bgc-blue-grey-900 whiteText marginTopBottom-2'\">\r\n  <span><h3>{{title}}</h3></span>\r\n  <span class=\"fill-remaining-space\"></span>\r\n  <!-- <span><button mat-mini-fab (click)=\"startMap()\" *ngIf=\"currentMap\" style=\"margin-right: 10px;\"><mat-icon>play_arrow</mat-icon></button></span> -->\r\n  <span>\r\n    <button *ngIf=\"mapId != 'all' && isUpdater() && !isEditModeMoveAddress()\" mat-mini-fab (click)=\"addNewAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>add_location</mat-icon>\r\n    </button>\r\n    <button *ngIf=\"mapId != 'all' && isUpdater() && !isEditModeMoveAddress() && !mapStarted && !isEditModeNeedAddress()\" mat-mini-fab (click)=\"startMoveAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>transform</mat-icon>\r\n    </button>\r\n    <button *ngIf=\"isUpdater() && isEditModeMoveAddress()\" mat-mini-fab (click)=\"stopMoveAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>cancel</mat-icon>\r\n    </button>\r\n    <button mat-mini-fab (click)=\"toggleShowLocation()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon *ngIf=\"!showLocation\">location_disabled</mat-icon>\r\n      <mat-icon *ngIf=\"showLocation && !locationSearching\">my_location</mat-icon>\r\n      <mat-icon *ngIf=\"showLocation && locationSearching\">location_searching</mat-icon>\r\n    </button>\r\n  </span>\r\n  <span><button mat-mini-fab (click)=\"fitMap()\" ><mat-icon svgIcon=\"fit-map\"></mat-icon></button></span>\r\n  <button mat-icon-button [matMenuTriggerFor]=\"menu\" >\r\n    <mat-icon>more_vert</mat-icon>\r\n  </button>\r\n  <mat-menu #menu=\"matMenu\" >\r\n    <button mat-menu-item (click)=\"viewList()\" *ngIf=\"!isEditModeNeedAddress()\">\r\n      <mat-icon>view_list</mat-icon>\r\n      <span>List View</span>\r\n    </button>\r\n    <a href=\"{{ addUrl }}\" target=\"_blank\" mat-menu-item>\r\n      <mat-icon svgIcon=\"add-address\"></mat-icon>\r\n      <span>New Address</span>\r\n    </a>\r\n    <button mat-menu-item (click)=\"editMap()\" *ngIf=\"isUpdater() && this.mapId != 'all'\">\r\n      <mat-icon>edit</mat-icon>\r\n      <span>Edit Map</span>\r\n    </button>\r\n    <button mat-menu-item (click)=\"deleteMap()\" *ngIf=\"isUpdater() && this.mapId != 'all'\">\r\n      <mat-icon>delete_forever</mat-icon>\r\n      <span>Delete Map</span>\r\n    </button>\r\n    <a mat-menu-item [routerLink]=\"['/home']\" >\r\n      <mat-icon>home</mat-icon>\r\n      <span>Home</span>\r\n    </a>\r\n  </mat-menu>\r\n</mat-toolbar>\r\n<mat-card *ngIf=\"isEditModeMoveAddress() && this.selectedAddresses.length > 0\">\r\n  <mat-card-title>Move Address(es)</mat-card-title>\r\n  <mat-card-content>\r\n    <p>\r\n      <mat-chip-list selectable=\"false\">\r\n        <mat-chip *ngFor=\"let addr of selectedAddresses\">{{ getAddressTitle(addr) }} </mat-chip>\r\n      </mat-chip-list>\r\n    </p>\r\n    <p>\r\n      <mat-form-field>\r\n        <input matInput placeholder=\"Move to Map ID\" name=\"findMapId\" [(ngModel)]=\"findMapId\" required>\r\n      </mat-form-field>\r\n      <button mat-mini-fab (click)=\"findTargetMap()\" style=\"margin-right: 5px;\">\r\n        <mat-icon>search</mat-icon>\r\n      </button>\r\n    </p>\r\n    <p>\r\n      <span *ngIf=\"targetMapObj\"> Moving to map: {{ targetMapObj.terId }} - {{ targetMapObj.name }} </span>\r\n    </p>\r\n  </mat-card-content>\r\n  <mat-card-actions>\r\n    <button [disabled]=\"!targetMapObj\" mat-mini-fab (click)=\"moveSelectedAddresses()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>save</mat-icon>\r\n    </button>\r\n    <button mat-mini-fab (click)=\"stopMoveAddressMode()\" style=\"margin-right: 5px;\" >\r\n      <mat-icon>cancel</mat-icon>\r\n    </button>\r\n  </mat-card-actions>\r\n</mat-card>\r\n<!-- <mat-toolbar [ngClass]=\"'bgc-yellow-100 marginTopBottom-2'\" *ngIf=\"isAdmin()\">\r\n  <span><mat-button-toggle style=\"margin-right: 10px;\" (change)=\"toggleShowInfo($event)\"><mat-icon>info</mat-icon></mat-button-toggle></span>\r\n  <span class=\"fill-remaining-space\"></span>\r\n</mat-toolbar> -->\r\n<agm-map [latitude]=\"centerLat\" [longitude]=\"centerLng\" [zoom]=\"zoom\" [ngStyle]=\"{'height': height}\">\r\n  <marker-cluster #markerCluster [onLoadComplete]=\"onMarkerLoad\" [onAddLocMarker]=\"onAddLocMarker\" [onFit]=\"onFit\" [minimumClusterSize]=\"minimumClusterSize\" [onAddressClick]=\"onAddressClick\" [onUpdate]=\"mapService.onUpdate\" [onSetShowClusterInfo]=\"onToggleShowInfo\" [points]=\"points\" ></marker-cluster>\r\n</agm-map>\r\n"
 
 /***/ }),
 
@@ -807,6 +807,7 @@ var MapComponent = (function (_super) {
         _this.onAddressClick = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]();
         _this.onAddLocMarker = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]();
         _this.onPosMarker = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]();
+        _this.onMarkerLoad = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]();
         _this.onFit = new __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]();
         _this.minimumClusterSize = 2;
         _this.shortenTitleWidth = 1024;
@@ -817,6 +818,7 @@ var MapComponent = (function (_super) {
         _this.EDIT_MODE_STATUS = 'editStatus';
         _this.EDIT_MODE_ADDRESS = 'editAddress';
         _this.EDIT_MODE_MOVE_ADDRESS = 'moveAddress';
+        _this.EDIT_MODE_NEED_ADDRESS = 'needAddress';
         _this.statusCache = [];
         _this.ADDRESS_UNSELECTED_ICON = '/assets/images/place-markers/home-unselected.svg';
         _this.ADDRESS_SELECTED_ICON = '/assets/images/place-markers/home-selected.svg';
@@ -854,6 +856,9 @@ var MapComponent = (function (_super) {
     };
     MapComponent.prototype.isEditStatus = function () {
         return this.editMode == this.EDIT_MODE_STATUS;
+    };
+    MapComponent.prototype.isEditModeNeedAddress = function () {
+        return this.editMode == this.EDIT_MODE_NEED_ADDRESS;
     };
     MapComponent.prototype.adjustHeight = function () {
         this.numHeight = (this.winRef.nativeWindow.innerHeight - this.heightPadding);
@@ -932,7 +937,7 @@ var MapComponent = (function (_super) {
     };
     MapComponent.prototype.saveAddressEdit = function () {
         var _this = this;
-        this.mapService.saveAddr(this.selectedAddObj, this.mapId == 'all' ? null : this.currentMap, null, function () {
+        this.mapService.saveAddr([this.selectedAddObj], this.mapId == 'all' ? null : this.currentMap, null, function () {
             _this.selectedAddObj = null;
             _this.closeAddrDlg();
             _this.resetEditMode();
@@ -959,16 +964,16 @@ var MapComponent = (function (_super) {
         this.mapService.triggerUpdate();
     };
     MapComponent.prototype.addNewAddressMode = function () {
-        this.selectedAddObj = [{
-                unit: '',
-                hnum: '',
-                st: '',
-                burb: '',
-                clat: '',
-                clong: '',
-                pcode: '',
-                tel: ''
-            }];
+        this.selectedAddObj = {
+            unit: '',
+            hnum: '',
+            st: '',
+            burb: '',
+            clat: '',
+            clong: '',
+            pcode: '',
+            tel: ''
+        };
         this.setEditingAddress();
         this.showAddrDlg();
     };
@@ -984,12 +989,12 @@ var MapComponent = (function (_super) {
                 });
             }
             else {
-                var clone = __WEBPACK_IMPORTED_MODULE_5_lodash__["clone"](this.currentAddr.addObj);
-                clone.addId = this.currentAddr.addObj.$key;
+                var clone = __WEBPACK_IMPORTED_MODULE_5_lodash__["isArray"](this.currentAddr.addObj) && this.selectedAddObj ? __WEBPACK_IMPORTED_MODULE_5_lodash__["clone"](this.selectedAddObj) : __WEBPACK_IMPORTED_MODULE_5_lodash__["clone"](this.currentAddr.addObj);
+                clone.addId = __WEBPACK_IMPORTED_MODULE_5_lodash__["isArray"](this.currentAddr.addObj) && this.selectedAddObj ? this.selectedAddObj.$key : this.currentAddr.addObj.$key;
                 if (__WEBPACK_IMPORTED_MODULE_5_lodash__["isUndefined"](clone.unit) || clone.unit == -9) {
                     clone.unit = '';
                 }
-                this.selectedAddObj = [clone];
+                this.selectedAddObj = clone;
             }
         }
         console.log(this.selectedAddObj);
@@ -1053,10 +1058,7 @@ var MapComponent = (function (_super) {
                         }
                     }
                     else {
-                        _this.title = _this.mapService.maps[0].terId + " - " + _this.mapService.maps[0].name + " " + (_this.mapService.isNormalMode() ? '' : '::Campaign');
-                        if (_this.winRef.nativeWindow.innerWidth <= _this.shortenTitleWidth) {
-                            _this.title = "Map " + _this.mapService.maps[0].terId + (_this.mapService.isNormalMode() ? '' : '::Campaign');
-                        }
+                        _this.setTitle();
                     }
                     _this.subs.push(_this.onAddressClick.subscribe(function (data) {
                         console.log(data);
@@ -1067,24 +1069,108 @@ var MapComponent = (function (_super) {
             }
         });
     };
+    MapComponent.prototype.setTitle = function () {
+        this.title = this.mapService.maps[0].terId + " - " + this.mapService.maps[0].name + " " + (this.mapService.isNormalMode() ? '' : '::Campaign');
+        if (this.winRef.nativeWindow.innerWidth <= this.shortenTitleWidth) {
+            this.title = "Map " + this.mapService.maps[0].terId + (this.mapService.isNormalMode() ? '' : '::Campaign');
+        }
+    };
     MapComponent.prototype.canOpenMap = function (map) {
         // if (this.fireAuth.currentUser) {
         //   console.log(map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
         // }
         return this.fireAuth.currentUser && (map.isUser(this.fireAuth.currentUser) || this.fireAuth.currentUser.isAdmin() || this.fireAuth.currentUser.isUpdater());
     };
+    MapComponent.prototype.deleteMap = function () {
+        var _this = this;
+        if (confirm("Are you sure you want to permanently delete this map and all the addresses?")) {
+            if (__WEBPACK_IMPORTED_MODULE_5_lodash__["isUndefined"](this.fsgs)) {
+                this.getMapFsgData(function () {
+                    // console.log(this.currentMap.mapObj.$key);
+                    // console.log(this.mapKey);
+                    // console.log(this.currentMap.addresses);
+                    _this.showLoadingDialog();
+                    _this.mapService.deleteMap(_this.currentMap.mapObj.$key, _this.mapKey, _this.fsgName, _this.currentMap.addresses, function () {
+                        _this.hideLoadingDialog();
+                        _this.winRef.nativeWindow.location = "/home";
+                    });
+                });
+            }
+            else {
+                this.showLoadingDialog();
+                this.mapService.deleteMap(this.currentMap.mapObj.$key, this.mapKey, this.fsgName, this.currentMap.addresses, function () {
+                    _this.hideLoadingDialog();
+                    _this.winRef.nativeWindow.location = "/home";
+                });
+            }
+        }
+    };
+    MapComponent.prototype.editAddress = function (event, addObj) {
+        event.preventDefault();
+        var addrMarker = null;
+        __WEBPACK_IMPORTED_MODULE_5_lodash__["each"](this.points, function (p) {
+            var addEntry = __WEBPACK_IMPORTED_MODULE_5_lodash__["find"](p.addId, function (id) {
+                return id == addObj.addId;
+            });
+            if (addEntry) {
+                addrMarker = p;
+                return false;
+            }
+        });
+        if (addrMarker) {
+            this.currentAddr = addrMarker;
+            this.selectedAddObj = addObj;
+            this.closeAddrListDlg();
+            this.setEditingAddress();
+            this.enableEditAddress();
+        }
+    };
+    MapComponent.prototype.deleteAddress = function (event, addObj) {
+        var _this = this;
+        event.preventDefault();
+        if (confirm("Are you sure you want to delete: " + addObj.hnum + " " + addObj.st + " ?")) {
+            this.mapService.deleteAddress(addObj.addId, addObj.mapAddrKey, addObj.mapId, function () {
+                // refresh the dialog list
+                __WEBPACK_IMPORTED_MODULE_5_lodash__["remove"](_this.currentAddrList, function (e) {
+                    return e.addId === addObj.addId;
+                });
+            });
+        }
+    };
     MapComponent.prototype.loadSingleMap = function (mapBase) {
         var _this = this;
         this.minimumClusterSize = 200;
-        this.subs.push(this.mapService.loadMapMarkersObs(mapBase, this.mapId).subscribe(function (map) {
+        this.subs.push(this.mapService.loadMapMarkersObs(mapBase, this.mapId)
+            .catch(function (error, errObs) {
+            console.log("Error loading map:");
+            console.log(error);
+            if (error === _this.mapService.errorMap['NO_ADDRESS']) {
+                _this.editMode = _this.EDIT_MODE_NEED_ADDRESS;
+                // this.mapService.maps[this.mapService.maps.length - 1].addresses = [];
+                _this.currentMap = new __WEBPACK_IMPORTED_MODULE_1__map_service__["b" /* Map */](_this.mapId, _this.mapService.maps[_this.mapService.maps.length - 1], null);
+                _this.title = _this.currentMap.mapObj.name + "  - No addresses";
+            }
+            _this.hideLoadingDialog();
+            return __WEBPACK_IMPORTED_MODULE_2_rxjs_Rx__["Observable"].of(null);
+        })
+            .subscribe(function (map) {
+            if (!map) {
+                return;
+            }
             console.log("Map: ");
             console.log(map);
             if (!_this.canOpenMap(map)) {
                 _this.accessDenied();
                 return;
             }
+            if (_this.editMode == _this.EDIT_MODE_NEED_ADDRESS) {
+                _this.editMode = _this.EDIT_MODE_STATUS;
+            }
             _this.mapStarted = map.assgnObj.$exists() && !__WEBPACK_IMPORTED_MODULE_5_lodash__["isEmpty"](map.assgnObj.started);
-            // TODO: Check if there are any addresses that are empty
+            // Check if there are any addresses that are empty
+            // _.remove(map.addresses, (addr)=>{
+            //   return _.isEmpty(addr.st) || _.isEmpty(`${addr.hnum}`) ;
+            // });
             // sort the addresses
             map.addresses = __WEBPACK_IMPORTED_MODULE_5_lodash__["sortBy"](map.addresses, [function (addr) {
                     return (__WEBPACK_IMPORTED_MODULE_5_lodash__["isUndefined"](addr.lSt) || __WEBPACK_IMPORTED_MODULE_5_lodash__["isNull"](addr.lSt) ? __WEBPACK_IMPORTED_MODULE_5_lodash__["toLower"](addr.st) : addr.lSt);
@@ -1104,13 +1190,10 @@ var MapComponent = (function (_super) {
             if (_this.triggerUpdate) {
                 _this.mapService.triggerUpdate();
             }
-            _this.title = _this.mapService.maps[0].terId + " - " + _this.mapService.maps[0].name + " " + (_this.mapService.isNormalMode() ? '' : '::Campaign');
-            if (_this.winRef.nativeWindow.innerWidth <= _this.shortenTitleWidth) {
-                _this.title = "Map " + _this.mapService.maps[0].terId + " " + (_this.mapService.isNormalMode() ? '' : '::Campaign');
-            }
+            _this.setTitle();
             var fullName = (_this.fireAuth.currentUser && _this.fireAuth.currentUser.userInfoObj) ? _this.fireAuth.currentUser.userInfoObj.name : '';
             var terId = _this.mapService.maps[0].terId;
-            _this.addUrl = "https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=" + terId + "&entry.1482719893=" + fullName + "&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=" + terId + "&entry.138422963=" + fullName + "&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=" + terId + "&entry.1534052334=" + fullName + "&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=" + terId + "&entry.913416032=" + fullName;
+            _this.addUrl = __WEBPACK_IMPORTED_MODULE_3__environments_environment__["a" /* environment */].addressFeedBackForm + "?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=" + terId + "&entry.1482719893=" + fullName + "&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=" + terId + "&entry.138422963=" + fullName + "&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=" + terId + "&entry.1534052334=" + fullName + "&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=" + terId + "&entry.913416032=" + fullName;
             // this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${this.mapService.maps[0].terId}&entry.1534052334=${fullName}`;
             _this.hideLoadingDialog();
             _this.triggerUpdate = true;
@@ -1133,6 +1216,7 @@ var MapComponent = (function (_super) {
                 this.currentAddrTitle = "Multiple addresses, select one below.";
                 this.currentGmapUrl = null;
                 this.selectedAddObj = null;
+                console.log(this.currentAddr);
             }
             else {
                 this.currentAddrTitle = this.getAddressTitle(this.currentAddr.addObj);
@@ -1268,13 +1352,18 @@ var MapComponent = (function (_super) {
             this.setEditingAddress();
         }
         else {
-            this.setEditingStatus();
+            if (this.editMode == this.EDIT_MODE_NEED_ADDRESS) {
+            }
+            else {
+                this.setEditingStatus();
+            }
         }
     };
     MapComponent.prototype.cancelAddrDlg = function () {
-        this.selectedAddObj = null;
         this.closeAddrDlg();
         this.resetEditMode();
+        // this.currentAddr = null;
+        this.selectedAddObj = null;
     };
     MapComponent.prototype.showCurrentLoc = function () {
         var _this = this;
@@ -1358,7 +1447,8 @@ var MapComponent = (function (_super) {
     MapComponent.prototype.buildFeedbackUrl = function () {
         var fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
         var terId = this.mapService.maps[0].terId;
-        this.currentFeedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=" + this.currentAddrTitle + "&entry.45257833&entry.681741514=" + terId + "&entry.1482719893=" + fullName + "&entry.1683213160=%E4%B8%8D%E6%98%AF&entry.293956968=" + this.currentAddrTitle + "&entry.602343366&entry.2071713990=" + terId + "&entry.138422963=" + fullName + "&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=" + terId + "&entry.1534052334=" + fullName + "&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=" + terId + "&entry.913416032=" + fullName;
+        this.currentFeedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdZYe2BmeJ_DLwW1lbvu9bcLWe7_wZ3Rs5fdaw-q4g9zfys3g/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=" + this.currentAddrTitle + "&entry.45257833&entry.681741514=" + terId + "&entry.1482719893=" + fullName + "&entry.1683213160=%E4%B8%8D%E6%98%AF&entry.293956968=" + this.currentAddrTitle + "&entry.602343366&entry.2071713990=" + terId + "&entry.138422963=" + fullName + "&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=" + terId + "&entry.1534052334=" + fullName + "&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=" + terId + "&entry.913416032=" + fullName;
+        // this.currentFeedbackUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=${this.currentAddrTitle}&entry.45257833&entry.681741514=${terId}&entry.1482719893=${fullName}&entry.1683213160=%E4%B8%8D%E6%98%AF&entry.293956968=${this.currentAddrTitle}&entry.602343366&entry.2071713990=${terId}&entry.138422963=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=${terId}&entry.1534052334=${fullName}&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=${terId}&entry.913416032=${fullName}`;
         // this.currentFeedbackUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=No&entry.1189370340=${this.currentAddrTitle}&entry.45257833&entry.681741514=${this.mapService.maps[0].terId}&entry.1482719893=${fullName}&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748&entry.1534052334`
     };
     MapComponent.prototype.viewList = function () {
@@ -1434,29 +1524,49 @@ var MapComponent = (function (_super) {
         }
         return bg;
     };
+    MapComponent.prototype.getStatusFgColor = function (addObj, stat) {
+        if (stat === void 0) { stat = null; }
+        var bg = "#000000";
+        var status = addObj ? addObj.status : stat;
+        if (!__WEBPACK_IMPORTED_MODULE_5_lodash__["isUndefined"](status)) {
+            switch (status) {
+                case 0:
+                case 2:
+                    bg = "#ffffff";
+                    break;
+            }
+        }
+        return bg;
+    };
+    MapComponent.prototype.getMapFsgData = function (cb) {
+        var _this = this;
+        this.showLoadingDialog();
+        var sub = this.mapService.getAllFsgMaps(this.mapBin)
+            .flatMap(function (mapId) {
+            return __WEBPACK_IMPORTED_MODULE_2_rxjs_Rx__["Observable"].of(null);
+        })
+            .debounce(function () {
+            return __WEBPACK_IMPORTED_MODULE_2_rxjs_Rx__["Observable"].interval(1000);
+        })
+            .subscribe(function () {
+            sub.unsubscribe();
+            __WEBPACK_IMPORTED_MODULE_5_lodash__["forOwn"](_this.mapBin, function (mapVal, mapId) {
+                _this.mapIds.push(mapVal);
+            });
+            _this.fsgs = __WEBPACK_IMPORTED_MODULE_5_lodash__["uniq"](__WEBPACK_IMPORTED_MODULE_5_lodash__["map"](_this.mapIds, function (mapId) {
+                return mapId.fsgName;
+            }));
+            _this.mapName = _this.currentMap.mapObj.name;
+            _this.fsgName = _this.currentMap.mapObj.fsg;
+            _this.mapKey = _this.mapBin[_this.mapId].mapKey;
+            _this.hideLoadingDialog();
+            cb();
+        });
+    };
     MapComponent.prototype.editMap = function () {
         var _this = this;
         if (__WEBPACK_IMPORTED_MODULE_5_lodash__["isUndefined"](this.fsgs)) {
-            this.showLoadingDialog();
-            var sub_1 = this.mapService.getAllFsgMaps(this.mapBin)
-                .flatMap(function (mapId) {
-                return __WEBPACK_IMPORTED_MODULE_2_rxjs_Rx__["Observable"].of(null);
-            })
-                .debounce(function () {
-                return __WEBPACK_IMPORTED_MODULE_2_rxjs_Rx__["Observable"].interval(1000);
-            })
-                .subscribe(function () {
-                sub_1.unsubscribe();
-                __WEBPACK_IMPORTED_MODULE_5_lodash__["forOwn"](_this.mapBin, function (mapVal, mapId) {
-                    _this.mapIds.push(mapVal);
-                });
-                _this.fsgs = __WEBPACK_IMPORTED_MODULE_5_lodash__["uniq"](__WEBPACK_IMPORTED_MODULE_5_lodash__["map"](_this.mapIds, function (mapId) {
-                    return mapId.fsgName;
-                }));
-                _this.mapName = _this.currentMap.mapObj.name;
-                _this.fsgName = _this.currentMap.mapObj.fsg;
-                _this.mapKey = _this.mapBin[_this.mapId].mapKey;
-                _this.hideLoadingDialog();
+            this.getMapFsgData(function () {
                 _this.mapEditDlg = _this.dialog.open(MapEditDlgComponent, {
                     data: { consumer: _this },
                     disableClose: true
@@ -1698,7 +1808,12 @@ var Map = (function () {
         this.id = mapId;
         this.mapObj = mapObj;
         this.assgnObj = assgnObj;
-        this.addressCount = __WEBPACK_IMPORTED_MODULE_2_lodash__["isEmpty"](mapObj.addresses) ? 0 : __WEBPACK_IMPORTED_MODULE_2_lodash__["size"](mapObj.addresses);
+        if (__WEBPACK_IMPORTED_MODULE_2_lodash__["isUndefined"](mapObj) || __WEBPACK_IMPORTED_MODULE_2_lodash__["isEmpty"](mapObj.addresses)) {
+            this.addressCount = 0;
+        }
+        else {
+            this.addressCount = __WEBPACK_IMPORTED_MODULE_2_lodash__["size"](mapObj.addresses);
+        }
     }
     Object.defineProperty(Map.prototype, "isAssigned", {
         get: function () {
@@ -1900,6 +2015,9 @@ var MapService = (function () {
             { val: 8, label: "Reported Issue" },
         ];
         this.currentActiveMapRoot = '/assignedMaps/active/';
+        this.errorMap = {
+            'NO_ADDRESS': new Error('No Addresses')
+        };
         this.maps = [];
         this.updatePipe.debounceTime(5000).subscribe(function (data) {
             _this.onUpdate.emit(data);
@@ -1929,17 +2047,23 @@ var MapService = (function () {
     MapService.prototype.loadMapMarkersObs = function (mapBaseUrl, mapId) {
         var _this = this;
         var mapBin = {};
+        var mapAddrObj = null;
         return this.db.object("/maps/" + mapId)
             .flatMap(function (mapObj) {
+            console.log(mapObj);
+            _this.maps.push(mapObj);
+            mapBin.mapObj = mapObj;
             if (mapObj.addresses) {
                 if (_this.trackUpdates) {
                     _this.updatePipe.next({});
                 }
                 else {
-                    _this.maps.push(mapObj);
-                    mapBin.mapObj = mapObj;
                     return __WEBPACK_IMPORTED_MODULE_1_rxjs_Rx__["Observable"].of(mapObj);
                 }
+            }
+            else {
+                console.log("Ooops, no addresses for this map: " + mapId);
+                return __WEBPACK_IMPORTED_MODULE_1_rxjs_Rx__["Observable"].throw(_this.errorMap['NO_ADDRESS']);
             }
             return __WEBPACK_IMPORTED_MODULE_1_rxjs_Rx__["Observable"].of(null);
         })
@@ -1954,6 +2078,7 @@ var MapService = (function () {
         })
             .flatMap(function (mapObj) {
             return _this.db.list("/maps/" + mapId + "/addresses").flatMap(function (addressesObj) {
+                mapAddrObj = addressesObj;
                 return __WEBPACK_IMPORTED_MODULE_1_rxjs_Rx__["Observable"].from(addressesObj);
             });
         })
@@ -1970,6 +2095,16 @@ var MapService = (function () {
                 return add.$key == addObj.$key;
             });
             addObj.addId = addObj.$key;
+            var mapAddrKey = null;
+            __WEBPACK_IMPORTED_MODULE_2_lodash__["each"](mapAddrObj, function (mapAddrItem) {
+                if (mapAddrItem.$value == addObj.addId) {
+                    mapAddrKey = mapAddrItem.$key;
+                    return false;
+                }
+            });
+            if (mapAddrKey) {
+                addObj.mapAddrKey = mapAddrKey;
+            }
             mapBin.addresses.push(addObj);
             return __WEBPACK_IMPORTED_MODULE_1_rxjs_Rx__["Observable"].of(addObj);
         })
@@ -1993,6 +2128,32 @@ var MapService = (function () {
             });
             map.addresses = mapBin.addresses;
             return __WEBPACK_IMPORTED_MODULE_1_rxjs_Rx__["Observable"].of(map);
+        });
+    };
+    MapService.prototype.deleteAddress = function (addId, addrKey, mapId, cb) {
+        // delete from DB
+        var delAddUpdate = {};
+        delAddUpdate["/maps/" + mapId + "/addresses/" + addrKey] = null;
+        delAddUpdate["/addresses/" + addId] = null;
+        delAddUpdate["" + this.currentActiveMapRoot + mapId + "/address/" + addrKey] = null;
+        console.log(delAddUpdate);
+        this.db.database.ref().update(delAddUpdate).then(function () {
+            cb();
+        });
+    };
+    MapService.prototype.deleteMap = function (mapId, mapKey, fsgName, addresses, cb) {
+        var delMapUpdate = {};
+        delMapUpdate["/maps/" + mapId] = null;
+        delMapUpdate["/fsg/" + fsgName + "/" + mapKey] = null;
+        __WEBPACK_IMPORTED_MODULE_2_lodash__["each"](addresses, function (addr) {
+            delMapUpdate["/addresses/" + addr.$key + "/map"] = "Deleted";
+            delMapUpdate["/addresses/" + addr.$key + "/mapId"] = "0000";
+            delMapUpdate["/addresses/" + addr.$key + "/map"] = "Deleted";
+            delMapUpdate["/addresses/" + addr.$key + "/fsg"] = "Deleted";
+        });
+        console.log(delMapUpdate);
+        this.db.database.ref().update(delMapUpdate).then(function () {
+            cb();
         });
     };
     MapService.prototype.createStatusMarkerIconConfig = function (size, statusVal) {
@@ -2021,6 +2182,10 @@ var MapService = (function () {
                         return mrkId == addId;
                     });
                 });
+                if (!marker) {
+                    // the address isn't found now
+                    return true;
+                }
                 // console.log(`Marker is:`);
                 // console.log(marker);
             }
@@ -2175,11 +2340,13 @@ var MapService = (function () {
         var _this = this;
         this.subs.push(this.db.list('/fsg/list').subscribe(function (fsgList) {
             fsgList.forEach(function (fsg) {
-                _this.subs.push(_this.db.list("/fsg/" + fsg.$value).subscribe(function (fsgMaps) {
-                    fsgMaps.forEach(function (mapId) {
-                        _this.loadMapMarkers(mapBaseUrl, mapId.$value);
-                    });
-                }));
+                if (fsg.$value != 'Queue') {
+                    _this.subs.push(_this.db.list("/fsg/" + fsg.$value).subscribe(function (fsgMaps) {
+                        fsgMaps.forEach(function (mapId) {
+                            _this.loadMapMarkers(mapBaseUrl, mapId.$value);
+                        });
+                    }));
+                }
             });
         }));
     };
@@ -2667,7 +2834,7 @@ var MapService = (function () {
     MapService.prototype.moveAddress = function (fromMapId, toMapId, toTerId, toMapName, fsg, addresses, cb) {
         var updateObj = {};
         __WEBPACK_IMPORTED_MODULE_2_lodash__["each"](addresses, function (addr) {
-            updateObj["/maps/" + fromMapId + "/addresses/" + addr.addId] = null;
+            updateObj["/maps/" + fromMapId + "/addresses/" + addr.mapAddrKey] = null;
             updateObj["/maps/" + toMapId + "/addresses/" + addr.addId] = addr.addId;
             updateObj["/addresses/" + addr.addId + "/mapId"] = toTerId;
             updateObj["/addresses/" + addr.addId + "/map"] = toMapName;
@@ -3162,6 +3329,7 @@ var MarkerClusterDirective = (function () {
         var _this = this;
         if (!this.points || this.points.length == 0) {
             console.log("No points to load...");
+            this.onLoadComplete.emit(this);
             return;
         }
         this.bounds = new google.maps.LatLngBounds(); // empty bounds object
@@ -3282,6 +3450,10 @@ __decorate([
 ], MarkerClusterDirective.prototype, "onAddLocMarker", void 0);
 __decorate([
     __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["Input"])(),
+    __metadata("design:type", typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["EventEmitter"]) === "function" && _g || Object)
+], MarkerClusterDirective.prototype, "onLoadComplete", void 0);
+__decorate([
+    __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["Input"])(),
     __metadata("design:type", Array)
 ], MarkerClusterDirective.prototype, "markerIcons", void 0);
 __decorate([
@@ -3300,10 +3472,10 @@ MarkerClusterDirective = __decorate([
     __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["Directive"])({
         selector: 'marker-cluster'
     }),
-    __metadata("design:paramtypes", [typeof (_g = typeof __WEBPACK_IMPORTED_MODULE_1__agm_core__["b" /* GoogleMapsAPIWrapper */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__agm_core__["b" /* GoogleMapsAPIWrapper */]) === "function" && _g || Object])
+    __metadata("design:paramtypes", [typeof (_h = typeof __WEBPACK_IMPORTED_MODULE_1__agm_core__["b" /* GoogleMapsAPIWrapper */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__agm_core__["b" /* GoogleMapsAPIWrapper */]) === "function" && _h || Object])
 ], MarkerClusterDirective);
 
-var _a, _b, _c, _d, _e, _f, _g;
+var _a, _b, _c, _d, _e, _f, _g, _h;
 //# sourceMappingURL=marker-cluster.js.map
 
 /***/ }),
@@ -4399,6 +4571,12 @@ ClusterIcon.prototype.triggerClusterClick = function (event) {
     // Zoom into the cluster.
     this.map_.fitBounds(this.cluster_.getBounds());
   }
+  var marker = new google.maps.Marker({
+    position: this.cluster_.center_,
+    map: this.map_,
+    title: "Cluster Multiple addresses"
+  });
+  this.cluster_.clusterIcon_.infowindow.open(this.map_, marker);
 };
 
 
@@ -4862,7 +5040,8 @@ var HomeComponent = (function (_super) {
     HomeComponent.prototype.postLoginSetup = function () {
         console.log("Home Component Post Login");
         var fullName = (this.fireAuth.currentUser && this.fireAuth.currentUser.userInfoObj) ? this.fireAuth.currentUser.userInfoObj.name : '';
-        this.addUrl = "https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=&entry.1482719893=&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=&entry.138422963=&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=&entry.1534052334=" + fullName + "&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=&entry.913416032=" + fullName;
+        this.addUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdZYe2BmeJ_DLwW1lbvu9bcLWe7_wZ3Rs5fdaw-q4g9zfys3g/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=&entry.1482719893=&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=&entry.138422963=&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=&entry.1534052334=" + fullName + "&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=&entry.913416032=" + fullName;
+        // this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340=&entry.45257833&entry.681741514=&entry.1482719893=&entry.1683213160=%E6%98%AF&entry.293956968=&entry.602343366&entry.2071713990=&entry.138422963=&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=&entry.1534052334=${fullName}&entry.1011916189&entry.1303192619&entry.825337910&entry.1931492709&entry.2023645450=&entry.913416032=${fullName}`;
         // this.addUrl = `https://docs.google.com/forms/d/e/1FAIpQLScYHfYNwnSIWAL9RAH3rEPC74WfkFT0FgcvaJKx1nAIROXS6A/viewform?usp=pp_url&entry.1810388592=Yes&entry.1189370340&entry.45257833&entry.681741514&entry.1482719893&entry.1018422546&entry.2060338072&entry.1052547294&entry.365006055&entry.1323592748=&entry.1534052334=${fullName}`;
         this.mapListComp.load();
     };
@@ -5219,6 +5398,13 @@ var UserAdminComponent = (function (_super) {
                 console.log("Resetting: ");
                 console.log(user);
                 _this.fireAuth.sendPasswordReset(user.email);
+                // .then(() => {
+                //   console.log("Password reset email sent.")
+                // })
+                // .catch((e) => {
+                //   console.error(`Password reset failed:`)
+                //   console.log(e);
+                // });
                 // processCtr++;
             }
             else {
@@ -5643,9 +5829,17 @@ var environment = {
         messagingSenderId: "1055117975996"
     },
     version: {
-        current: '2.90.1',
-        list: ['2.90.1', '2.90', '2.89.1', '2.89', '2.88', '2.87', '2.86', '2.85', '2.84', '2.83', '2.82', '2.8.1', '2.8', '2.7.1', '2.7'],
+        current: '2.91.3',
+        list: ['2.91.3', '2.91.2', '2.91.1', '2.91.0', '2.90.5', '2.90.4', '2.90.3', '2.90.2', '2.90.1', '2.90', '2.89.1', '2.89', '2.88', '2.87', '2.86', '2.85', '2.84', '2.83', '2.82', '2.8.1', '2.8', '2.7.1', '2.7'],
         details: {
+            '2.91.3': 'Bugfix: address list now shows multiple addresses on both editing address or editing status.',
+            '2.91.2': 'Bugfix: For updaters, fixed adding new addresses when map is started.',
+            '2.91.1': 'Address list dialog: fixed editing, and suppressed status column when map is not started.',
+            '2.91.0': 'Changed multiple address background colours to match the status. Updaters can now edit & delete addresses from the dialog list, and delete maps.',
+            '2.90.5': 'Bugfix: fixed address dialog issue.',
+            '2.90.4': 'Bugfix: fixed editing addresses from the same GPS marker.',
+            '2.90.3': 'Showed individual addresses on clusters. Suppressed Queued FSG when showing All maps',
+            '2.90.2': 'Fixed moving addresses from old maps that use lists in addresses, instead of the newer map-based.',
             '2.90.1': 'Fixed add address dialog issue. Handled null street address on maps.',
             '2.90': 'Added search and edit map for map updaters',
             '2.89.1': 'Remove not-at-homes on campaign mode',
